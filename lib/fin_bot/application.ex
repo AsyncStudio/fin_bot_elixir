@@ -12,8 +12,8 @@ defmodule FinBot.Application do
       FinBot.Repo,
       {DNSCluster, query: Application.get_env(:fin_bot, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: FinBot.PubSub},
-      # Start a worker by calling: FinBot.Worker.start_link(arg)
-      # {FinBot.Worker, arg},
+      # Task supervisor for background webhook processing
+      {Task.Supervisor, name: FinBot.TaskSupervisor},
       # Start to serve requests, typically the last entry
       FinBotWeb.Endpoint
     ]

@@ -7,6 +7,8 @@ defmodule FinBotWeb.Router do
 
   scope "/api", FinBotWeb do
     pipe_through :api
+    
+    post "/webhook/whatsapp", WhatsappController, :receive
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
