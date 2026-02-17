@@ -20,10 +20,13 @@ defmodule FinBotElixirWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", FinBotElixirWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", FinBotElixirWeb do
+    pipe_through :api
+
+    post "/webhook/whatsapp", WhatsappController, :receive
+
+    resources "/transactions", TransactionController, except: [:new, :edit]
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:fin_bot_elixir, :dev_routes) do

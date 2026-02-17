@@ -12,6 +12,7 @@ defmodule FinBotElixir.Application do
       FinBotElixir.Repo,
       {DNSCluster, query: Application.get_env(:fin_bot_elixir, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: FinBotElixir.PubSub},
+      {Task.Supervisor, name: FinBotElixir.TaskSupervisor},
       # Start a worker by calling: FinBotElixir.Worker.start_link(arg)
       # {FinBotElixir.Worker, arg},
       # Start to serve requests, typically the last entry
