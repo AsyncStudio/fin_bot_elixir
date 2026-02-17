@@ -30,6 +30,9 @@ source!([
   System.get_env()
 ])
 
+config :gemini_ex,
+  api_key: "AIzaSyDzcVSdblJAyXMYWfDFwOLtubxG2_OOipc"
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
