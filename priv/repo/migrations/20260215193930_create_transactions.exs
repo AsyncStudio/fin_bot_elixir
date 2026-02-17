@@ -9,7 +9,7 @@ defmodule FinBot.Repo.Migrations.CreateTransactions do
       add :category, :string
       add :type, :string
       add :raw_input, :text
-      add :user_id, references(:users, column: :whatsapp_number, on_delete: :nothing, type: :string)
+      add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
 
       timestamps(type: :utc_datetime)
     end
