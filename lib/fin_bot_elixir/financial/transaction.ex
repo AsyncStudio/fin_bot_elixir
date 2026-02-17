@@ -8,7 +8,7 @@ defmodule FinBotElixir.Financial.Transaction do
     field :amount, :decimal
     field :description, :string
     field :category, :string
-    field :type, :string
+    field :type, :string # can be "expense" or "income"
     field :raw_input, :string
     field :user_id, :binary_id
 

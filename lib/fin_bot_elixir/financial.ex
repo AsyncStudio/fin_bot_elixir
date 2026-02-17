@@ -56,6 +56,13 @@ defmodule FinBotElixir.Financial do
     |> Repo.all()
   end
 
+  def count_user_transactions(user_id) do
+    Transaction
+    |> where([t], t.user_id == ^user_id)
+    |> select([t], count(t.id))
+    |> Repo.one()
+  end
+
   @doc """
   Gets a single transaction.
 

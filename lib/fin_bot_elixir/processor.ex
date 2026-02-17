@@ -3,6 +3,7 @@ defmodule FinBotElixir.Processor do
 
   alias FinBotElixir.Repo
   alias FinBotElixir.Gemini.Client
+  alias FinBotElixir.Gemini.Interactions
   alias FinBotElixir.Financial
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Accounts
@@ -36,11 +37,16 @@ defmodule FinBotElixir.Processor do
       Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}", %{attrs: attrs})
       with {:ok, transaction} <- Financial.create_transaction_for_user(user.id, attrs) do
         Logger.info("Transação salva no FinBot para o sender #{sender_id}", %{transaction: attrs})
-        # TODO: Enviar confirmação de volta para o Node.js (via Webhook ou Redis)
+        process_response(transaction)
       else
         {:error, reason} ->
           Logger.error("Erro ao criar transação para sender #{sender_id}: #{inspect(reason)}", %{error: reason, attrs: attrs})
       end
     end
+  end
+
+  defp process_response(%Transaction{} transaction) do
+    # TODO: Enviar confirmação de volta para o Node.js (via Webhook ou Redis)
+    return_text = Interactions.process_response(transaction)
   end
 end
