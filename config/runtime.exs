@@ -20,6 +20,22 @@ if System.get_env("PHX_SERVER") do
   config :fin_bot_elixir, FinBotElixirWeb.Endpoint, server: true
 end
 
+# region: Custom
+
+env_dir_prefix = System.get_env("RELEASE_ROOT") || Path.expand("./envs")
+
+source!([
+  Path.absname(".env", env_dir_prefix),
+  Path.absname(".#{config_env()}.env", env_dir_prefix),
+  Path.absname(".#{config_env()}.overrides.env", env_dir_prefix),
+  System.get_env()
+])
+
+config :gemini_ex,
+  api_key: "AIzaSyDzcVSdblJAyXMYWfDFwOLtubxG2_OOipc"
+
+# endregion
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

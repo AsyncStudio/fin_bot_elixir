@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: $$DATABASE_NAME
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGPASSWORD: $$DATABASE_PASSWORD
+    healthcheck:
+      test: [ "CMD-SHELL", "psql -U $$DATABASE_USER -d $$DATABASE_NAME -c '\\q' || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
