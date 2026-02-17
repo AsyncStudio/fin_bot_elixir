@@ -29,12 +29,12 @@ defmodule FinBotElixir.Processor do
 
       attrs = Map.merge(extracted_data, %{
         "raw_input" => content,
-        "user_id" => user.whatsapp_number,
+        "user_id" => user.id,
         "category" => extracted_data["category"] || "Outros",
       })
 
       Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}", %{attrs: attrs})
-      with {:ok, transaction} <- Financial.create_transaction(attrs) do
+      with {:ok, transaction} <- Financial.create_transaction_for_user(user.id, attrs) do
         Logger.info("Transação salva no FinBot para o sender #{sender_id}", %{transaction: attrs})
         # TODO: Enviar confirmação de volta para o Node.js (via Webhook ou Redis)
       else

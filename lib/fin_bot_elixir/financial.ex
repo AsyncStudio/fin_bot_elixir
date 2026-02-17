@@ -90,6 +90,14 @@ defmodule FinBotElixir.Financial do
     |> Repo.insert()
   end
 
+  def create_transaction_for_user(user_id, attrs \\ %{}) do
+    attrs = Map.put(attrs, "user_id", user_id)
+
+    %Transaction{}
+    |> Transaction.changeset(attrs)
+    |> Repo.insert()
+  end
+
   @doc """
   Updates a transaction.
 

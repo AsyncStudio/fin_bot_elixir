@@ -9,14 +9,18 @@ defmodule FinBotElixir.Accounts do
 
       nil ->
         # Se não existe, criamos um usuário "Sombra"
-        %User{}
-        |> User.changeset(%{
+        create_user(%{
           whatsapp_number: whatsapp_number,
-          linking_token: generate_unique_token(),
-          full_name: "Novo Usuário" # Nome temporário
+          full_name: "Usuário #{whatsapp_number}",
+          linking_token: generate_unique_token()
         })
-        |> Repo.insert()
     end
+  end
+
+  def create_user(attrs) do
+    %User{}
+    |> User.changeset(attrs)
+    |> Repo.insert()
   end
 
   defp generate_unique_token do

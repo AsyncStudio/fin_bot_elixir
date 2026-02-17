@@ -18,6 +18,9 @@ defmodule FinBotElixirWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/dash", DashLive, :index
+    live "/dash/:name", DashLive, :show
   end
 
   scope "/api", FinBotElixirWeb do

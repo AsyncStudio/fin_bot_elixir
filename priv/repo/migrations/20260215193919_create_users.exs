@@ -7,7 +7,7 @@ defmodule FinBot.Repo.Migrations.CreateUsers do
       add :full_name, :string
       add :whatsapp_number, :string
       add :linking_token, :string
-      add :firebase_uid, :string, null: false
+      add :firebase_uid, :string, null: true
 
       timestamps(type: :utc_datetime)
     end

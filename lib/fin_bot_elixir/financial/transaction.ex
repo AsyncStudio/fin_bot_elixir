@@ -18,7 +18,7 @@ defmodule FinBotElixir.Financial.Transaction do
   @doc false
   def changeset(transaction, attrs) do
     transaction
-    |> cast(attrs, [:amount, :description, :category, :type, :raw_input])
+    |> cast(attrs, [:amount, :description, :category, :type, :raw_input, :user_id])
     |> validate_required([:amount, :description, :category, :type, :raw_input])
   end
 end
