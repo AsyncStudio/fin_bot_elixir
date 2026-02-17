@@ -29,16 +29,15 @@ defmodule FinBotElixir.Gemini.Client do
 
   defp build_prompt(text) do
     """
-    Você é o FinBot, um assistente financeiro inteligente.
-    Analise a seguinte mensagem: "#{text}"
-    Extraia os dados no formato JSON estrito:
+    Analise: "#{text}"
+    Extraia em JSON:
     {
-      "amount": (número positivo),
-      "description": (string curta),
-      "category": (uma das: Alimentação, Lazer, Transporte, Moradia, Outros),
-      "type": ("expense" para gastos ou "income" para ganhos)
+      "amount": positive number,
+      "description": string,
+      "category": Alimentação|Lazer|Transporte|Moradia|Outros,
+      "type": expense|income
     }
-    Retorne APENAS o JSON, sem markdown ou explicações.
+    Se dúvida no type, use expense. Retorne APENAS o JSON.
     """
   end
 

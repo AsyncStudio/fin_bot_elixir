@@ -45,7 +45,7 @@ defmodule FinBotElixir.Processor do
     end
   end
 
-  defp process_response(%Transaction{} transaction) do
+  defp process_response(%Transaction{} = transaction) do
     # TODO: Enviar confirmação de volta para o Node.js (via Webhook ou Redis)
     return_text = Interactions.process_response(transaction)
   end

@@ -13,7 +13,7 @@ defmodule FinBotElixir.Financial do
     query = from t in Transaction,
       where: t.user_id == ^user_id,
       group_by: t.category,
-      select: %{name: t.category, total: sum(t.amount), count: count(t.id)}
+      select: %{name: t.category, total: sum(fragment("CASE WHEN ? = 'expense' THEN -? ELSE ? END", t.type, t.amount, t.amount)), count: count(t.id)}
 
     Repo.all(query)
   end

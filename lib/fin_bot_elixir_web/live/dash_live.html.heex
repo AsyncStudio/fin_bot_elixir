@@ -25,7 +25,7 @@
             <span class="text-gray-600">
               <%= t.description %>
             </span>
-            <span class="font-semibold text-gray-900">R$ <%= t.amount %></span>
+            <span class="font-semibold text-gray-900">R$ <%= if t.type == "expense", do: "-", else: "" %><%= t.amount %></span>
           </div>
           <% end %>
       </div>

@@ -19,7 +19,7 @@ defmodule FinBotElixir.Gemini.Interactions do
 
   # region: Msg Switch
 
-  def process_response(%Transaction{type: "expense"} = transaction) do
+  def process_response(%Transaction{} = transaction) do
     count = Financial.count_user_transactions(transaction.user_id)
   end
 
