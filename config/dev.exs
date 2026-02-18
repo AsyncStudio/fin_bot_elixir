@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :fin_bot, FinBot.Repo,
+config :fin_bot_elixir, FinBotElixir.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "fin_bot_dev",
+  database: "fin_bot_elixir_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -16,15 +16,18 @@ config :fin_bot, FinBot.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :fin_bot, FinBotWeb.Endpoint,
+config :fin_bot_elixir, FinBotElixirWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: String.to_integer(System.get_env("PORT") || "4000")],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "ZrWZEGSpnY36PFGHlqaSClHP3N15AbLWQmXL1jI4nwB3VKwWmjALJ75GoR7YoYRF",
-  watchers: []
+  secret_key_base: "G9qpwbT5em/ytJAPa934/cDQgplcRMt0g2BXfSSLMkTp8EK+M3XdmczWYU65M0TY",
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:fin_bot_elixir, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:fin_bot_elixir, ~w(--watch)]}
+  ]
 
 # ## SSL Support
 #
@@ -49,8 +52,19 @@ config :fin_bot, FinBotWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
+# Watch static and templates for browser reloading.
+config :fin_bot_elixir, FinBotElixirWeb.Endpoint,
+  live_reload: [
+    web_console_logger: true,
+    patterns: [
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/fin_bot_elixir_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+    ]
+  ]
+
 # Enable dev routes for dashboard and mailbox
-config :fin_bot, dev_routes: true
+config :fin_bot_elixir, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
@@ -61,6 +75,14 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Include debug annotations and locations in rendered markup.
+  # Changing this configuration will require mix clean and a full recompile.
+  debug_heex_annotations: true,
+  debug_attributes: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

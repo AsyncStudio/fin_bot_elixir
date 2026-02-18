@@ -1,4 +1,4 @@
-# FinBot
+# FinBotElixir
 
 To start your Phoenix server:
 

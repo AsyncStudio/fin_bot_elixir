@@ -1,0 +1,33 @@
+<div class="p-6 max-w-2xl mx-auto">
+  <%= if @live_action==:index do %>
+    <h1 class="text-2xl font-bold mb-6">Resumo de Gastos</h1>
+    <div class="grid gap-4">
+      <%= for cat <- @categories do %>
+        <.link patch={~p"/dash/#{cat.name}"}
+          class="block p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-gray-50 transition">
+          <div class="flex justify-between items-center">
+            <span class="font-medium text-gray-700">
+              <%= cat.name %>
+            </span>
+            <span class="font-bold text-red-600">R$ <%= cat.total %></span>
+          </div>
+        </.link>
+        <% end %>
+    </div>
+
+    <% else %>
+      <.link patch={~p"/dash"} class="text-blue-500 text-sm">← Voltar</.link>
+      <h1 class="text-2xl font-bold mt-4 mb-6">Extrato: <%= @category_name %>
+      </h1>
+      <div class="space-y-3">
+        <%= for t <- @transactions do %>
+          <div class="flex justify-between p-3 border-b border-gray-100">
+            <span class="text-gray-600">
+              <%= t.description %>
+            </span>
+            <span class="font-semibold text-gray-900">R$ <%= if t.type == "expense", do: "-", else: "" %><%= t.amount %></span>
+          </div>
+          <% end %>
+      </div>
+      <% end %>
+</div>
