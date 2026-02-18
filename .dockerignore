@@ -6,7 +6,6 @@ node_modules/
 .elixir_ls/
 *.beam
 *.ez
-.env*
 .DS_Store
 *.iml
 .idea/
