@@ -21,6 +21,7 @@ COPY lib lib
 COPY config config
 COPY priv priv
 COPY assets assets
+COPY .env.prod .env.prod
 
 # Compile code
 RUN MIX_ENV=prod mix compile
