@@ -18,13 +18,24 @@ defmodule FinBotElixir.Gemini.Client do
           "description" => %{"type" => "string"},
           "category" => %{"type" => "string"},
           "type" => %{"type" => "string"},
+          "is_transaction" => %{"type" => "boolean"}
         }
       },
       response_mime_type: "application/json",
       temperature: 0.3
     ])
 
-    parse_response(response)
+    with {:ok, data} <- parse_response(response) do
+      cond do
+        data["is_transaction"] == false ->
+          Logger.info("Entrada analisada como NÃO transação: #{text}")
+          {:error, :not_a_transaction}
+
+        true ->
+          Logger.info("Entrada analisada como transação válida: #{text}")
+          {:ok, data}
+      end
+    end
   end
 
   defp build_prompt(text) do
@@ -35,16 +46,18 @@ defmodule FinBotElixir.Gemini.Client do
       "amount": positive number,
       "description": string,
       "category": Alimentação|Lazer|Transporte|Moradia|Outros,
-      "type": expense|income
+      "type": expense|income,
+      "is_transaction": boolean
     }
-    Se dúvida no type, use expense. Retorne APENAS o JSON.
+    Se dúvida no type, use expense.
+    Se a mensagem não contém uma transação válida (sem valor, descrição vaga, ou claramente não é uma transação), defina "is_transaction" como false.
+    Retorne APENAS o JSON.
     """
   end
 
   defp parse_response(body) do
     # O Gemini retorna uma estrutura aninhada: candidates -> content -> parts -> text
     text_response = body.candidates |> List.first() |> get_in([Access.key!(:content), Access.key!(:parts)]) |> List.first()
-    IO.puts("\n\n#{inspect(text_response.text)}")
 
     case Jason.decode(text_response.text) do
       {:ok, data} -> {:ok, data}

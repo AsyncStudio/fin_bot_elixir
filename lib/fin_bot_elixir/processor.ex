@@ -19,7 +19,7 @@ defmodule FinBotElixir.Processor do
     :ok
   end
 
-  defp process_transaction(%{"content" => content, "sender" => sender_id}) do
+  defp process_transaction(%{from: sender_id, text: content}) do
     Logger.info("Iniciando processamento da mensagem do sender #{sender_id}: #{content}")
 
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
@@ -42,6 +42,13 @@ defmodule FinBotElixir.Processor do
         {:error, reason} ->
           Logger.error("Erro ao criar transação para sender #{sender_id}: #{inspect(reason)}", %{error: reason, attrs: attrs})
       end
+    else
+      {:error, :not_a_transaction} ->
+        # Logger.info("Mensagem do sender #{sender_id} não foi analisada como transação: #{content}")
+        Interactions.process_error(sender_id)
+      {:error, reason} ->
+        # Logger.error("Erro ao analisar mensagem do sender #{sender_id}: #{inspect(reason)}")
+        Interactions.process_error(sender_id)
     end
   end
 

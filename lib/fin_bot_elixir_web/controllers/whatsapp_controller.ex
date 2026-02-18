@@ -1,19 +1,34 @@
 defmodule FinBotElixirWeb.WhatsappController do
+  require Logger
+  
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Processor
 
-  def receive(conn, params) do
-    # O params aqui já chega como o JSON vindo do Node.js
-    # Ex: %{"sender" => "55489...", "content" => "Gastei 50 no mercado", "message_type" => "text"}
-
-    case Processor.handle_webhook_message(params) do
-      :ok ->
-        # Retornamos 202 (Accepted) para indicar que o processamento começou
-        send_resp(conn, 202, "")
-
-      _error ->
-        # Caso algo dê muito errado na orquestração inicial
-        send_resp(conn, 500, "Internal Server Error")
+  def verify(conn, %{"hub.mode" => "subscribe", "hub.challenge" => challenge, "hub.verify_token" => token}) do
+    if token == System.get_env("WHATSAPP_VERIFY_TOKEN") do
+      send_resp(conn, 200, challenge)
+    else
+      send_resp(conn, 403, "Forbidden")
     end
   end
+
+  def receive(conn, params) do
+    # A estrutura da Meta é profunda, vamos extrair o essencial
+    case extract_message(params) do
+      %{from: from, text: text} ->
+        # Rodamos nossa lógica de Shadow User e Gemini de forma assíncrona
+        Processor.handle_webhook_message(from, text)
+        send_resp(conn, 200, "")
+
+      _ ->
+        Logger.warn("Webhook recebido com formato inesperado: #{inspect(params)}")
+        send_resp(conn, 200, "") # Sempre responda 200 para a Meta não reenviar
+    end
+  end
+
+  defp extract_message(%{"entry" => [%{"changes" => [%{"value" => %{"messages" => [msg]}}]}]}) do
+    %{from: msg["from"], text: msg["text"]["body"]}
+  end
+
+  defp extract_message(_), do: nil
 end

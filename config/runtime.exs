@@ -23,17 +23,15 @@ end
 
 # region: Custom
 
-env_dir_prefix = System.get_env("RELEASE_ROOT") || Path.expand("./envs")
+env_file = System.get_env("ENV_FILE") || ".env.#{config_env()}"
 
 source!([
-  Path.absname(".env", env_dir_prefix),
-  Path.absname(".#{config_env()}.env", env_dir_prefix),
-  Path.absname(".#{config_env()}.overrides.env", env_dir_prefix),
+  Path.absname(env_file),
   System.get_env()
 ])
 
 config :gemini_ex,
-  api_key: "AIzaSyDzcVSdblJAyXMYWfDFwOLtubxG2_OOipc"
+  api_key: System.get_env("GEMINI_API_KEY")
 
 # endregion
 

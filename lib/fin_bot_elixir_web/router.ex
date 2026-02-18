@@ -26,6 +26,7 @@ defmodule FinBotElixirWeb.Router do
   scope "/api", FinBotElixirWeb do
     pipe_through :api
 
+    get "/webhook/whatsapp", WhatsappController, :verify
     post "/webhook/whatsapp", WhatsappController, :receive
 
     resources "/transactions", TransactionController, except: [:new, :edit]

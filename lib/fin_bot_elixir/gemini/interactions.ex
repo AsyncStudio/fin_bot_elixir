@@ -1,5 +1,6 @@
 defmodule FinBotElixir.Gemini.Interactions do
 
+  alias FinBotElixir.WhatsApp.Client
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Financial
 
@@ -17,25 +18,38 @@ defmodule FinBotElixir.Gemini.Interactions do
     "Ganho adicionado! Se quiser, posso te ajudar a analisar suas fontes de renda depois. 🤖",
   ]
 
+  @failed_responses [
+    "Não consegui entender essa mensagem como uma transação válida. Pode reformular?",
+    "Parece que essa mensagem não contém um gasto ou receita claro. Tente ser mais específico!",
+    "Ops, não consegui extrair uma transação dessa mensagem. Certifique-se de incluir um valor e uma descrição clara."
+  ]
+
   # region: Msg Switch
 
   def process_response(%Transaction{} = transaction) do
     count = Financial.count_user_transactions(transaction.user_id)
+    smart_process(transaction, count)
+      |> Client.send_message(transaction.user.whatsapp_number)
   end
 
-  def smart_process(%Transaction{} = transaction, count) when count <= 1 do
+  def process_error(whatsapp_number) do
+    process_return_random(@failed_responses)
+      |> Client.send_message(whatsapp_number)
+  end
+
+  defp smart_process(%Transaction{} = transaction, count) when count <= 1 do
     welcome_and_process(transaction.user_id, transaction.raw_input)
   end
 
-  def smart_process(%Transaction{} = transaction, count) when count == 5 do
+  defp smart_process(%Transaction{} = transaction, count) when count == 5 do
     process_with_cta(transaction.user_id, transaction.raw_input)
   end
 
-  def smart_process(%Transaction{type: "expense"} = transaction, _count) do
+  defp smart_process(%Transaction{type: "expense"} = transaction, _count) do
     process_return_random(@expense_responses)
   end
 
-  def smart_process(%Transaction{type: "income"} = transaction, _count) do
+  defp smart_process(%Transaction{type: "income"} = transaction, _count) do
     process_return_random(@income_responses)
   end
 
