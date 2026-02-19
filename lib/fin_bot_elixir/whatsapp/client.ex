@@ -2,12 +2,8 @@ defmodule FinBotElixir.WhatsApp.Client do
   require Logger
   import Dotenvy
 
-  defp base_url, do: env!("FACEBOOK_API_URL", :string)
-
-  defp token, do: env!("WHATSAPP_ACCESS_TOKEN", :string)
-
   def send_message(text, whatsapp_number) do
-    phone_id = env!("WHATSAPP_PHONE_NUMBER_ID", :string)
+    phone_id = phone_id()
     base_url = base_url()
     token = token()
 
@@ -32,4 +28,8 @@ defmodule FinBotElixir.WhatsApp.Client do
         :error
     end
   end
+
+  defp base_url, do: env!("FACEBOOK_API_URL", :string)
+  defp token, do: env!("WHATSAPP_ACCESS_TOKEN", :string)
+  defp phone_id, do: env!("WHATSAPP_PHONE_NUMBER_ID", :string)
 end
