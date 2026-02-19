@@ -32,8 +32,11 @@ defmodule FinBotElixirWeb.Router do
   scope "/dashboard", FinBotElixirWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    live "/", DashLive, :index
-    live "/:name", DashLive, :show
+    live_session :authenticated,
+      on_mount: [{FinBotElixirWeb.Live.UserAuth, :require_authenticated_user}] do
+      live "/", DashLive, :index
+      live "/:name", DashLive, :show
+    end
   end
 
   scope "/api", FinBotElixirWeb do

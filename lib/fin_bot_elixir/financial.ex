@@ -26,6 +26,53 @@ defmodule FinBotElixir.Financial do
     Repo.all(query)
   end
 
+  @doc """
+  Groups categories by type (expense/income) and sums their totals.
+  Returns a map with :expense_categories, :income_categories, :total_income, :total_expenses, :net_balance.
+  """
+  def dashboard_summary(user_id) do
+    categories =
+      from(t in Transaction,
+        where: t.user_id == ^user_id,
+        group_by: [t.category, t.type],
+        select: %{
+          name: t.category,
+          type: t.type,
+          total: sum(t.amount),
+          count: count(t.id)
+        }
+      )
+      |> Repo.all()
+
+    expense_categories =
+      categories
+      |> Enum.filter(&(&1.type == "expense"))
+      |> Enum.sort_by(& &1.total, :desc)
+
+    income_categories =
+      categories
+      |> Enum.filter(&(&1.type == "income"))
+      |> Enum.sort_by(& &1.total, :desc)
+
+    total_expenses =
+      expense_categories
+      |> Enum.reduce(Decimal.new(0), &Decimal.add(&1.total, &2))
+
+    total_income =
+      income_categories
+      |> Enum.reduce(Decimal.new(0), &Decimal.add(&1.total, &2))
+
+    net_balance = Decimal.sub(total_income, total_expenses)
+
+    %{
+      expense_categories: expense_categories,
+      income_categories: income_categories,
+      total_expenses: total_expenses,
+      total_income: total_income,
+      net_balance: net_balance
+    }
+  end
+
   # Lista os detalhes de uma categoria específica
   def list_by_category(user_id, category_name) do
     query =
