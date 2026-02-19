@@ -1,5 +1,5 @@
 # Build stage
-FROM elixir:1.15-alpine AS builder
+FROM elixir:1.16-alpine AS builder
 
 # Install Node.js for building assets
 RUN apk add --no-cache nodejs npm git build-base
@@ -60,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD bin/fin_bot_elixir eval "FinBotElixir.Repo.query!('SELECT 1')" || exit 1
 
 # Start command
-CMD ["bin/fin_bot_elixir", "start"]
+CMD ["ENV_FILE=.env.prod", "bin/fin_bot_elixir", "start"]

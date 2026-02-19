@@ -26,6 +26,13 @@ end
 env_file = System.get_env("ENV_FILE") || ".env.#{config_env()}"
 IO.puts("Carregando variáveis de ambiente de #{Path.absname(env_file)}")
 
+unless File.exists?(env_file) do
+  raise """
+  Environment file not found: #{Path.absname(env_file)}
+  Please create the file or set the ENV_FILE environment variable.
+  """
+end
+
 source!([
   Path.absname(env_file),
   System.get_env()
