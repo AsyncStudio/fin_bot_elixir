@@ -35,9 +35,26 @@ defmodule FinBotElixirWeb.DashLive do
   defp apply_action(socket, :show, %{"name" => name}) do
     transactions = Financial.list_by_category(socket.assigns.user_id, name)
 
+    category_type =
+      case List.first(transactions) do
+        nil -> "expense"
+        t -> t.type
+      end
+
+    category_total =
+      transactions
+      |> Enum.reduce(Decimal.new(0), &Decimal.add(&1.amount, &2))
+
+    now = Date.utc_today()
+    month_label = Calendar.strftime(now, "%B %Y")
+
     assign(socket,
-      page_title: "Extrato: #{name}",
+      page_title: "#{name}",
       category_name: name,
+      category_type: category_type,
+      category_total: category_total,
+      transaction_count: length(transactions),
+      month_label: month_label,
       transactions: transactions
     )
   end
