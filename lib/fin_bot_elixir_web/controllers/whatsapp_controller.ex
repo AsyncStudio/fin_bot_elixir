@@ -6,7 +6,7 @@ defmodule FinBotElixirWeb.WhatsappController do
   alias FinBotElixir.Processor
 
   def verify(conn, %{"hub.mode" => "subscribe", "hub.challenge" => challenge, "hub.verify_token" => token}) do
-    if token == env!("WHATSAPP_VERIFY_TOKEN", :string) do
+    if token == "fin_BOT-verify-token%$" do
       send_resp(conn, 200, challenge)
     else
       send_resp(conn, 403, "Forbidden")
