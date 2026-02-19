@@ -8,9 +8,11 @@ defmodule FinBotElixir.Financial.Transaction do
     field :amount, :decimal
     field :description, :string
     field :category, :string
-    field :type, :string # can be "expense" or "income"
+    # can be "expense" or "income"
+    field :type, :string
     field :raw_input, :string
-    field :user_id, :binary_id
+    # field :user_id, :binary_id
+    belongs_to :user, FinBotElixir.Accounts.User
 
     timestamps(type: :utc_datetime)
   end

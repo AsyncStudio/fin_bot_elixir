@@ -1,0 +1,36 @@
+defmodule FinBotElixirWeb.AuthPlug do
+  import Plug.Conn
+  import Phoenix.Controller
+  alias FinBotElixir.Accounts
+
+  # Required for function plugs
+  def init(opts), do: opts
+
+  def call(conn, action) when is_atom(action) do
+    apply(__MODULE__, action, [conn, []])
+  end
+
+  def call(conn, {action, action_opts}) when is_atom(action) do
+    apply(__MODULE__, action, [conn, action_opts])
+  end
+
+  # 1. Carrega o usuário da sessão para o conn.assigns
+  def fetch_current_user(conn, _opts) do
+    user_id = get_session(conn, :user_id)
+
+    user = user_id && Accounts.get_user(user_id)
+    assign(conn, :current_user, user)
+  end
+
+  # 2. Impede o acesso se não houver usuário logado
+  def require_authenticated_user(conn, _opts) do
+    if conn.assigns.current_user do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Você precisa estar logado para acessar o Dash.")
+      |> redirect(to: "/")
+      |> halt()
+    end
+  end
+end

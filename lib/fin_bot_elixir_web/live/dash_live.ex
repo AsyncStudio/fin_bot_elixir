@@ -3,9 +3,8 @@ defmodule FinBotElixirWeb.DashLive do
   alias FinBotElixir.Financial
 
   @impl true
-  def mount(_params, _session, socket) do
-    # No futuro, pegamos o ID do Firebase/Auth aqui
-    user_id = "3f0438bf-1316-4ead-b41f-a1163d2169fd"
+  def mount(_params, session, socket) do
+    user_id = session["user_id"]
     {:ok, assign(socket, user_id: user_id)}
   end
 
@@ -23,6 +22,11 @@ defmodule FinBotElixirWeb.DashLive do
   # Lógica para a tela de EXTRATO
   defp apply_action(socket, :show, %{"name" => name}) do
     transactions = Financial.list_by_category(socket.assigns.user_id, name)
-    assign(socket, page_title: "Extrato: #{name}", category_name: name, transactions: transactions)
+
+    assign(socket,
+      page_title: "Extrato: #{name}",
+      category_name: name,
+      transactions: transactions
+    )
   end
 end

@@ -10,19 +10,28 @@ defmodule FinBotElixir.Financial do
 
   # Agrupa gastos por categoria para a tela inicial
   def list_category_usage(user_id) do
-    query = from t in Transaction,
-      where: t.user_id == ^user_id,
-      group_by: t.category,
-      select: %{name: t.category, total: sum(fragment("CASE WHEN ? = 'expense' THEN -? ELSE ? END", t.type, t.amount, t.amount)), count: count(t.id)}
+    query =
+      from t in Transaction,
+        where: t.user_id == ^user_id,
+        group_by: t.category,
+        select: %{
+          name: t.category,
+          total:
+            sum(
+              fragment("CASE WHEN ? = 'expense' THEN -? ELSE ? END", t.type, t.amount, t.amount)
+            ),
+          count: count(t.id)
+        }
 
     Repo.all(query)
   end
 
   # Lista os detalhes de uma categoria específica
   def list_by_category(user_id, category_name) do
-    query = from t in Transaction,
-      where: t.user_id == ^user_id and t.category == ^category_name,
-      order_by: [desc: t.inserted_at]
+    query =
+      from t in Transaction,
+        where: t.user_id == ^user_id and t.category == ^category_name,
+        order_by: [desc: t.inserted_at]
 
     Repo.all(query)
   end
