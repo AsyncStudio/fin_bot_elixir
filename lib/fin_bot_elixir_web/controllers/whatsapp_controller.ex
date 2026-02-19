@@ -18,7 +18,7 @@ defmodule FinBotElixirWeb.WhatsappController do
     case extract_message(params) do
       %{from: from, text: text} ->
         # Rodamos nossa lógica de Shadow User e Gemini de forma assíncrona
-        Processor.handle_webhook_message(from, text)
+        Processor.handle_webhook_message(%{from: from, text: text})
         send_resp(conn, 200, "")
 
       _ ->

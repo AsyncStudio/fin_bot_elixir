@@ -1,18 +1,19 @@
 defmodule FinBotElixir.WhatsApp.Client do
   require Logger
+  import Dotenvy
 
-  @base_url "https://graph.facebook.com/v20.0"
-  @token System.get_env("WHATSAPP_ACCESS_TOKEN")
+  @base_url env!("FACEBOOK_API_URL", :string)
+  @token env!("WHATSAPP_ACCESS_TOKEN", :string)
 
   def send_message(text, whatsapp_number) do
-    phone_id = System.get_env("WHATSAPP_PHONE_NUMBER_ID")
+    phone_id = env!("WHATSAPP_PHONE_NUMBER_ID", :string)
     token = @token
 
     url = "#{@base_url}/#{phone_id}/messages"
 
     Logger.info("Enviando mensagem para #{whatsapp_number}: #{text}")
     Logger.debug("Detalhes do envio #{inspect(%{url: url, token: token, whatsapp_number: whatsapp_number, text: text})}")
-
+    
     body = %{
       messaging_product: "whatsapp",
       recipient_type: "individual",
