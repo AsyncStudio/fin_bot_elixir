@@ -68,7 +68,8 @@ defmodule FinBotElixir.MixProject do
       {:bandit, "~> 1.5"},
       {:dotenvy, "~> 1.1"},
       {:gemini_ex, "~> 0.9.1"},
-      {:decimal, "~> 2.0"}
+      {:decimal, "~> 2.0"},
+      {:assent, "~> 0.3.0"}
     ]
   end
 

@@ -10,20 +10,21 @@ defmodule FinBotElixir.Gemini.Client do
   def analyze_input(text) do
     prompt = build_prompt(text)
 
-    {:ok, response} = Gemini.generate(prompt, [
-      response_json_schema: %{
-        "type" => "object",
-        "properties" => %{
-          "amount" => %{"type" => "number"},
-          "description" => %{"type" => "string"},
-          "category" => %{"type" => "string"},
-          "type" => %{"type" => "string"},
-          "is_transaction" => %{"type" => "boolean"}
-        }
-      },
-      response_mime_type: "application/json",
-      temperature: 0.3
-    ])
+    {:ok, response} =
+      Gemini.generate(prompt,
+        response_json_schema: %{
+          "type" => "object",
+          "properties" => %{
+            "amount" => %{"type" => "number"},
+            "description" => %{"type" => "string"},
+            "category" => %{"type" => "string"},
+            "type" => %{"type" => "string"},
+            "is_transaction" => %{"type" => "boolean"}
+          }
+        },
+        response_mime_type: "application/json",
+        temperature: 0.3
+      )
 
     with {:ok, data} <- parse_response(response) do
       cond do
@@ -57,7 +58,11 @@ defmodule FinBotElixir.Gemini.Client do
 
   defp parse_response(body) do
     # O Gemini retorna uma estrutura aninhada: candidates -> content -> parts -> text
-    text_response = body.candidates |> List.first() |> get_in([Access.key!(:content), Access.key!(:parts)]) |> List.first()
+    text_response =
+      body.candidates
+      |> List.first()
+      |> get_in([Access.key!(:content), Access.key!(:parts)])
+      |> List.first()
 
     case Jason.decode(text_response.text) do
       {:ok, data} -> {:ok, data}

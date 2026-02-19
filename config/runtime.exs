@@ -41,6 +41,17 @@ source!([
 config :gemini_ex,
   api_key: env!("GEMINI_API_KEY", :string)
 
+config :fin_bot_elixir, :google_auth,
+  client_id: env!("GOOGLE_CLIENT_ID", :string),
+  client_secret: env!("GOOGLE_CLIENT_SECRET", :string),
+  strategy: Assent.Strategy.Google
+
+config :fin_bot_elixir, :whatsapp,
+  base_url: env!("FACEBOOK_API_URL", :string),
+  token: env!("WHATSAPP_ACCESS_TOKEN", :string),
+  phone_id: env!("WHATSAPP_PHONE_NUMBER_ID", :string)
+
+
 # endregion
 
 if config_env() == :prod do

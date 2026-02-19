@@ -1,5 +1,4 @@
 defmodule FinBotElixir.Gemini.Interactions do
-
   alias FinBotElixir.WhatsApp.Client
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Financial
@@ -15,7 +14,7 @@ defmodule FinBotElixir.Gemini.Interactions do
   @income_responses [
     "Receita registrada! Ótimo ver dinheiro entrando. 💰",
     "Anotado seu ganho! Lembre-se de equilibrar receitas e despesas para manter as finanças saudáveis. ⚖️",
-    "Ganho adicionado! Se quiser, posso te ajudar a analisar suas fontes de renda depois. 🤖",
+    "Ganho adicionado! Se quiser, posso te ajudar a analisar suas fontes de renda depois. 🤖"
   ]
 
   @failed_responses [
@@ -27,14 +26,16 @@ defmodule FinBotElixir.Gemini.Interactions do
   # region: Msg Switch
 
   def process_response(%Transaction{} = transaction) do
+    transaction = FinBotElixir.Repo.preload(transaction, :user)
     count = Financial.count_user_transactions(transaction.user_id)
+
     smart_process(transaction, count)
-      |> Client.send_message(transaction.user.whatsapp_number)
+    |> Client.send_message(transaction.user.whatsapp_number)
   end
 
   def process_error(whatsapp_number) do
     process_return_random(@failed_responses)
-      |> Client.send_message(whatsapp_number)
+    |> Client.send_message(whatsapp_number)
   end
 
   defp smart_process(%Transaction{} = transaction, count) when count <= 1 do
@@ -60,7 +61,7 @@ defmodule FinBotElixir.Gemini.Interactions do
   defp welcome_and_process(user, text) do
     # TODO: welcome message
     """
-    Salve, #{user.full_name}! 👋
+    Salve, #{user.full_name || ""}! 👋
     Já anotei seu primeiro gasto aqui.
 
     Eu sou o FinBot e vou organizar suas finanças por aqui.
@@ -70,6 +71,7 @@ defmodule FinBotElixir.Gemini.Interactions do
 
   defp process_with_cta(user, text) do
     # TODO: CTA
+    user = Accounts.get_user(user)
     """
     Boa! Mais um anotado. ✅
 

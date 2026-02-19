@@ -8,19 +8,32 @@ defmodule FinBotElixirWeb.Router do
     plug :put_root_layout, html: {FinBotElixirWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    # Sempre tenta carregar o usuário se ele existir na sessão
+    plug FinBotElixirWeb.AuthPlug, :fetch_current_user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
+  pipeline :require_authenticated_user do
+    plug FinBotElixirWeb.AuthPlug, :require_authenticated_user
+  end
+
   scope "/", FinBotElixirWeb do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/auth/:provider", AuthController, :request
+    get "/auth/:provider/callback", AuthController, :callback
+  end
 
-    live "/dash", DashLive, :index
-    live "/dash/:name", DashLive, :show
+  # Rotas Protegidas (Dashboard do FinBot)
+  scope "/dashboard", FinBotElixirWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live "/", DashLive, :index
+    live "/:name", DashLive, :show
   end
 
   scope "/api", FinBotElixirWeb do

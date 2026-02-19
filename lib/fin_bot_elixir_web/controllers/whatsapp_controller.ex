@@ -5,7 +5,11 @@ defmodule FinBotElixirWeb.WhatsappController do
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Processor
 
-  def verify(conn, %{"hub.mode" => "subscribe", "hub.challenge" => challenge, "hub.verify_token" => token}) do
+  def verify(conn, %{
+        "hub.mode" => "subscribe",
+        "hub.challenge" => challenge,
+        "hub.verify_token" => token
+      }) do
     if token == "fin_BOT-verify-token%$" do
       send_resp(conn, 200, challenge)
     else
@@ -23,7 +27,8 @@ defmodule FinBotElixirWeb.WhatsappController do
 
       _ ->
         Logger.warn("Webhook recebido com formato inesperado: #{inspect(params)}")
-        send_resp(conn, 200, "") # Sempre responda 200 para a Meta não reenviar
+        # Sempre responda 200 para a Meta não reenviar
+        send_resp(conn, 200, "")
     end
   end
 
