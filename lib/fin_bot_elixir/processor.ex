@@ -8,16 +8,49 @@ defmodule FinBotElixir.Processor do
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Accounts
 
+  @max_retries 5
+
   def handle_webhook_message(params) do
     # Dispara o processo em background
     Logger.info("Recebida nova mensagem do webhook: #{inspect(params)}")
 
     Task.Supervisor.start_child(FinBotElixir.TaskSupervisor, fn ->
-      process_transaction(params)
+      retry(fn -> process_transaction(params) end, @max_retries)
     end)
 
     # Responde imediatamente pro Node/Zap
     :ok
+  end
+
+  defp retry(fun, retries_left, attempt \\ 1)
+
+  defp retry(_fun, 0, attempt) do
+    Logger.error("Processamento falhou após #{attempt - 1} tentativas, desistindo.")
+  end
+
+  defp retry(fun, retries_left, attempt) do
+    case fun.() do
+      :ok ->
+        :ok
+
+      {:error, :not_a_transaction} ->
+        # Mensagem não é uma transação, não há necessidade de tentar novamente
+        :ok
+
+      {:error, reason} ->
+        Logger.warning(
+          "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
+        )
+
+        retry(fun, retries_left - 1, attempt + 1)
+    end
+  rescue
+    exception ->
+      Logger.warning(
+        "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
+      )
+
+      retry(fun, retries_left - 1, attempt + 1)
   end
 
   defp process_transaction(%{from: sender_id, text: content}) do
@@ -47,20 +80,23 @@ defmodule FinBotElixir.Processor do
             error: reason,
             attrs: attrs
           })
+
+          {:error, reason}
       end
     else
       {:error, :not_a_transaction} ->
-        # Logger.info("Mensagem do sender #{sender_id} não foi analisada como transação: #{content}")
         Interactions.process_error(sender_id)
+        {:error, :not_a_transaction}
 
       {:error, reason} ->
-        # Logger.error("Erro ao analisar mensagem do sender #{sender_id}: #{inspect(reason)}")
         Interactions.process_error(sender_id)
+        {:error, reason}
     end
   end
 
   defp process_response(%Transaction{} = transaction) do
     # TODO: Enviar confirmação de volta para o Node.js (via Webhook ou Redis)
-    return_text = Interactions.process_response(transaction)
+    Interactions.process_response(transaction)
+    :ok
   end
 end
