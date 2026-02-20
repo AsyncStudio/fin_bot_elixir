@@ -9,6 +9,7 @@ defmodule FinBotElixir.Processor do
   alias FinBotElixir.Accounts
 
   @max_retries 5
+  @retry_delay_ms 5_000
 
   def handle_webhook_message(params) do
     # Dispara o processo em background
@@ -42,6 +43,7 @@ defmodule FinBotElixir.Processor do
           "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
         )
 
+        Process.sleep(@retry_delay_ms)
         retry(fun, retries_left - 1, attempt + 1)
     end
   rescue
@@ -50,6 +52,7 @@ defmodule FinBotElixir.Processor do
         "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
       )
 
+      Process.sleep(@retry_delay_ms)
       retry(fun, retries_left - 1, attempt + 1)
   end
 
