@@ -135,6 +135,10 @@ defmodule FinBotElixir.Financial do
   """
   def get_transaction!(id), do: Repo.get!(Transaction, id)
 
+  def get_transaction_for_user!(id, user_id) do
+    Repo.get_by!(Transaction, id: id, user_id: user_id)
+  end
+
   @doc """
   Creates a transaction.
 
