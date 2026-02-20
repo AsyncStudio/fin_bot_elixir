@@ -3,6 +3,7 @@
 mix deps.get
 
 # Build assets
+mix gettext.extract --merge
 mix assets.setup
 
 mix tailwind.install --if-missing

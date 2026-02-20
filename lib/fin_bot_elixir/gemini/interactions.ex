@@ -39,11 +39,11 @@ defmodule FinBotElixir.Gemini.Interactions do
   end
 
   defp smart_process(%Transaction{} = transaction, count) when count <= 1 do
-    welcome_and_process(transaction.user_id, transaction.raw_input)
+    welcome_and_process(transaction.user, transaction.raw_input)
   end
 
   defp smart_process(%Transaction{} = transaction, count) when count == 5 do
-    process_with_cta(transaction.user_id, transaction.raw_input)
+    process_with_cta(transaction.user, transaction.raw_input)
   end
 
   defp smart_process(%Transaction{type: "expense"} = transaction, _count) do
@@ -71,7 +71,7 @@ defmodule FinBotElixir.Gemini.Interactions do
 
   defp process_with_cta(user, text) do
     # TODO: CTA
-    user = Accounts.get_user(user)
+    # user = Accounts.get_user(user)
     """
     Boa! Mais um anotado. ✅
 

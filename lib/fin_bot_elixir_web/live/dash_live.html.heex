@@ -4,7 +4,7 @@
       <header
         class="border-b border-base-300 bg-base-200/50 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 -mt-20 px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-6xl px-6 py-8">
-          <h1 class="text-4xl font-bold text-base-content">My Finances</h1>
+          <h1 class="text-4xl font-bold text-base-content">{gettext("My Finances")}</h1>
           <p class="mt-2 text-base-content/60">{@month_label}</p>
         </div>
       </header>
@@ -16,7 +16,7 @@
             <div class="grid gap-4 md:grid-cols-3">
               <%!-- Net Balance --%>
                 <div class="rounded-lg border border-base-300 bg-base-200 p-6">
-                  <p class="text-sm font-medium text-base-content/60">Net Balance</p>
+                  <p class="text-sm font-medium text-base-content/60">{gettext("Net Balance")}</p>
                   <p class={[ "mt-2 text-3xl font-bold" , if(Decimal.compare(@net_balance, 0) !=:lt, do: "text-success" , else: "text-error" ) ]}>
                     R$ {FinBotElixirWeb.DashLive.format_currency(@net_balance)}
                   </p>
@@ -26,7 +26,7 @@
                   <div class="rounded-lg border border-base-300 bg-base-200 p-6">
                     <div class="flex items-center justify-between">
                       <div>
-                        <p class="text-sm font-medium text-base-content/60">Total Income</p>
+                        <p class="text-sm font-medium text-base-content/60">{gettext("Total Income")}</p>
                         <p class="mt-2 text-3xl font-bold text-success">
                           R$ {FinBotElixirWeb.DashLive.format_currency(@total_income)}
                         </p>
@@ -39,7 +39,7 @@
                     <div class="rounded-lg border border-base-300 bg-base-200 p-6">
                       <div class="flex items-center justify-between">
                         <div>
-                          <p class="text-sm font-medium text-base-content/60">Total Expenses</p>
+                          <p class="text-sm font-medium text-base-content/60">{gettext("Total Expenses")}</p>
                           <p class="mt-2 text-3xl font-bold text-error">
                             R$ {FinBotElixirWeb.DashLive.format_currency(@total_expenses)}
                           </p>
@@ -60,14 +60,14 @@
                     <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-error/10">
                       <.icon name="hero-arrow-up-right" class="h-5 w-5 text-error" />
                     </span>
-                    Expenses
+                    {gettext("Expenses")}
                   </h2>
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   <%= if @expense_categories==[] do %>
                     <div class="col-span-full rounded-lg border border-base-300 bg-base-200 p-8 text-center">
-                      <p class="text-base-content/60">No expenses recorded this period.</p>
+                      <p class="text-base-content/60">{gettext("No records for this period.")}</p>
                     </div>
                     <% end %>
                       <%= for cat <- @expense_categories do %>
@@ -79,7 +79,9 @@
                           <div class="relative">
                             <div class="flex items-start justify-between">
                               <div class="flex-1">
-                                <p class="text-sm font-medium text-base-content/60">{cat.name}</p>
+                                <p class="text-sm font-medium text-base-content/60">
+                                  {FinBotElixirWeb.DashLive.category_label(cat.name)}
+                                </p>
                                 <p class="mt-2 text-3xl font-bold text-error">
                                   R$ {FinBotElixirWeb.DashLive.format_currency(cat.total)}
                                 </p>
@@ -88,7 +90,7 @@
                                 class="h-5 w-5 text-base-content/40 transition-transform group-hover:translate-x-1" />
                             </div>
                             <p class="mt-4 text-xs text-base-content/40">
-                              {cat.count} {if cat.count == 1, do: "transaction", else: "transactions"}
+                              {cat.count} {ngettext("record", "records", cat.count)}
                             </p>
                           </div>
                         </.link>
@@ -103,14 +105,14 @@
                       <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
                         <.icon name="hero-arrow-down-left" class="h-5 w-5 text-success" />
                       </span>
-                      Incomes
+                      {gettext("Income")}
                     </h2>
                   </div>
 
                   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <%= if @income_categories==[] do %>
                       <div class="col-span-full rounded-lg border border-base-300 bg-base-200 p-8 text-center">
-                        <p class="text-base-content/60">No income recorded this period.</p>
+                        <p class="text-base-content/60">{gettext("No records for this period.")}</p>
                       </div>
                       <% end %>
                         <%= for cat <- @income_categories do %>
@@ -122,7 +124,9 @@
                             <div class="relative">
                               <div class="flex items-start justify-between">
                                 <div class="flex-1">
-                                  <p class="text-sm font-medium text-base-content/60">{cat.name}</p>
+                                  <p class="text-sm font-medium text-base-content/60">
+                                    {FinBotElixirWeb.DashLive.category_label(cat.name)}
+                                  </p>
                                   <p class="mt-2 text-3xl font-bold text-success">
                                     R$ {FinBotElixirWeb.DashLive.format_currency(cat.total)}
                                   </p>
@@ -131,7 +135,7 @@
                                   class="h-5 w-5 text-base-content/40 transition-transform group-hover:translate-x-1" />
                               </div>
                               <p class="mt-4 text-xs text-base-content/40">
-                                {cat.count} {if cat.count == 1, do: "transaction", else: "transactions"}
+                                {cat.count} {ngettext("record", "records", cat.count)}
                               </p>
                             </div>
                           </.link>
@@ -147,14 +151,14 @@
                   <.link patch={~p"/dashboard"}
                     class="mb-4 flex items-center gap-2 text-sm font-medium text-base-content/60 transition-colors hover:text-base-content">
                     <.icon name="hero-arrow-left" class="h-4 w-4" />
-                    Back
+                    {gettext("Back")}
                   </.link>
                   <div class="flex items-start justify-between">
                     <div class="flex-1">
                       <h1 class="text-4xl font-bold text-base-content">{@category_name}</h1>
                       <p class="mt-2 text-base-content/60">{@month_label}</p>
                     </div>
-                    <div class={[ "flex h-12 w-12 items-center justify-center rounded-lg" , if(@category_type=="expense" , do: "bg-error/10" , else: "bg-success/10" ) ]}>
+                    <div class={[ "flex h-12 w-12 items-center justify-center rounded-lg" , if(@category_type=="expense", do: "bg-error/10" , else: "bg-success/10" ) ]}>
                       <.icon name={if(@category_type=="expense" , do: "hero-arrow-up-right" ,
                         else: "hero-arrow-down-left" )} class={[ "h-6 w-6" , if(@category_type=="expense" ,
                         do: "text-error" , else: "text-success" ) ]} />
@@ -169,14 +173,13 @@
                   <div class="mx-auto max-w-4xl px-6 py-8">
                     <div class="rounded-lg border border-base-300 bg-base-200 p-6">
                       <p class="text-sm font-medium text-base-content/60">
-                        {if @category_type == "expense", do: "Total Spent", else: "Total Received"}
+                        {if @category_type == "expense", do: gettext("Total Spent"), else: gettext("Total Received")}
                       </p>
-                      <p class={[ "mt-2 text-4xl font-bold" , if(@category_type=="expense" , do: "text-error" ,
-                        else: "text-success" ) ]}>
+                      <p class={[ "mt-2 text-4xl font-bold" , if(@category_type=="expense" , do: "text-error" , else: "text-success" ) ]}>
                         R$ {FinBotElixirWeb.DashLive.format_currency(@category_total)}
                       </p>
                       <p class="mt-2 text-xs text-base-content/60">
-                        {@transaction_count} {if @transaction_count == 1, do: "transaction", else: "transactions"}
+                        {@transaction_count} {ngettext("record", "records", @transaction_count)}
                       </p>
                     </div>
                   </div>
@@ -184,11 +187,11 @@
 
                 <%!-- Transaction List --%>
                   <div class="mx-auto max-w-4xl px-6 py-12 -mx-4 sm:-mx-6 lg:-mx-8">
-                    <h2 class="mb-6 text-2xl font-bold text-base-content">Transactions</h2>
+                    <h2 class="mb-6 text-2xl font-bold text-base-content">{gettext("Records")}</h2>
 
                     <%= if @transactions==[] do %>
                       <div class="rounded-lg border border-base-300 bg-base-200/50 p-8 text-center">
-                        <p class="text-base-content/60">No transactions found.</p>
+                        <p class="text-base-content/60">{gettext("No records found.")}</p>
                       </div>
                       <% end %>
 
@@ -202,7 +205,8 @@
                                   {Calendar.strftime(t.inserted_at, "%b %d")}
                                 </p>
                               </div>
-                              <p class={[ "text-lg font-bold" , if(t.type=="expense" , do: "text-error" , else: "text-success" ) ]}>
+                              <p class={[ "text-lg font-bold" , if(t.type=="expense" , do: "text-error" ,
+                                else: "text-success" ) ]}>
                                 {if t.type == "expense", do: "-", else: "+"}R$
                                 {FinBotElixirWeb.DashLive.format_currency(t.amount)}
                               </p>

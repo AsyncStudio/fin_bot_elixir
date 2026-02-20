@@ -11,6 +11,10 @@ config :fin_bot_elixir,
   ecto_repos: [FinBotElixir.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :fin_bot_elixir, FinBotElixirWeb.Gettext,
+  default_locale: "pt_BR",
+  locales: ["pt_BR", "en"]
+
 # Configures the endpoint
 config :fin_bot_elixir, FinBotElixirWeb.Endpoint,
   url: [host: "localhost"],
