@@ -176,3 +176,60 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Utilities"
 msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:213
+#, elixir-autogen, elixir-format
+msgid "Amount"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:299
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this transaction? This action cannot be undone."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:236
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:305
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:220
+#, elixir-autogen, elixir-format
+msgid "Category"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:269
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:312
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:296
+#, elixir-autogen, elixir-format
+msgid "Delete Transaction"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:262
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex:141
+#, elixir-autogen, elixir-format
+msgid "Failed to delete transaction."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex:229
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex:135
+#, elixir-autogen, elixir-format
+msgid "Transaction deleted successfully."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex:101
+#, elixir-autogen, elixir-format
+msgid "Transaction updated successfully."
+msgstr ""

@@ -60,8 +60,88 @@ defmodule FinBotElixirWeb.DashLive do
       category_total: category_total,
       transaction_count: length(transactions),
       month_label: month_label,
-      transactions: transactions
+      transactions: transactions,
+      all_categories: Transaction.categories(),
+      editing_id: nil,
+      edit_form: nil,
+      confirm_delete_id: nil
     )
+  end
+
+  @impl true
+  def handle_event("edit_transaction", %{"id" => id}, socket) do
+    transaction = Financial.get_transaction_for_user!(id, socket.assigns.user_id)
+    form = to_form(Financial.change_transaction(transaction), as: :transaction)
+    {:noreply, assign(socket, editing_id: id, edit_form: form)}
+  end
+
+  @impl true
+  def handle_event("cancel_edit", _params, socket) do
+    {:noreply, assign(socket, editing_id: nil, edit_form: nil)}
+  end
+
+  @impl true
+  def handle_event("save_transaction", %{"transaction" => params}, socket) do
+    with editing_id when not is_nil(editing_id) <- socket.assigns.editing_id,
+         transaction <- Financial.get_transaction_for_user!(editing_id, socket.assigns.user_id),
+         {:ok, _transaction} <- Financial.update_transaction(transaction, params) do
+      transactions = Financial.list_by_category(socket.assigns.user_id, socket.assigns.category_name)
+      category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+
+      {:noreply,
+       socket
+       |> assign(
+         transactions: transactions,
+         category_total: category_total,
+         transaction_count: length(transactions),
+         editing_id: nil,
+         edit_form: nil
+       )
+       |> put_flash(:info, gettext("Transaction updated successfully."))}
+    else
+      nil ->
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, edit_form: to_form(changeset, as: :transaction))}
+    end
+  end
+
+  @impl true
+  def handle_event("confirm_delete", %{"id" => id}, socket) do
+    {:noreply, assign(socket, confirm_delete_id: id)}
+  end
+
+  @impl true
+  def handle_event("cancel_delete", _params, socket) do
+    {:noreply, assign(socket, confirm_delete_id: nil)}
+  end
+
+  @impl true
+  def handle_event("delete_transaction", %{"id" => id}, socket) do
+    transaction = Financial.get_transaction_for_user!(id, socket.assigns.user_id)
+
+    case Financial.delete_transaction(transaction) do
+      {:ok, _transaction} ->
+        transactions = Financial.list_by_category(socket.assigns.user_id, socket.assigns.category_name)
+        category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+
+        {:noreply,
+         socket
+         |> assign(
+           transactions: transactions,
+           category_total: category_total,
+           transaction_count: length(transactions),
+           confirm_delete_id: nil
+         )
+         |> put_flash(:info, gettext("Transaction deleted successfully."))}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> assign(confirm_delete_id: nil)
+         |> put_flash(:error, gettext("Failed to delete transaction."))}
+    end
   end
 
   @doc """
@@ -138,5 +218,11 @@ defmodule FinBotElixirWeb.DashLive do
       "other" -> gettext("Other")
       _ -> name
     end
+  end
+
+  def categories_for_type(all_categories, type) do
+    all_categories
+    |> Enum.filter(&(&1.type == type))
+    |> Enum.map(&{&1.label, &1.name})
   end
 end
