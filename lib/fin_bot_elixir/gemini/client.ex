@@ -5,6 +5,7 @@ defmodule FinBotElixir.Gemini.Client do
   require Logger
 
   alias FinBotElixir.Financial
+  alias FinBotElixir.Financial.Transaction
   alias Decimal, as: D
 
   def analyze_input(text) do
@@ -40,17 +41,20 @@ defmodule FinBotElixir.Gemini.Client do
   end
 
   defp build_prompt(text) do
+    categories = Transaction.category_values() |> Enum.join("|")
+
     """
     Analise: "#{text}"
     Extraia em JSON:
     {
       "amount": positive number,
       "description": string,
-      "category": Alimentação|Lazer|Transporte|Moradia|Outros,
+      "category": #{categories},
       "type": expense|income,
       "is_transaction": boolean
     }
     Se dúvida no type, use expense.
+    Se dúvida na categoria, use "other". Use as categorias exatamente como fornecidas.
     Se a mensagem não contém uma transação válida (sem valor, descrição vaga, ou claramente não é uma transação), defina "is_transaction" como false.
     Retorne APENAS o JSON.
     """
