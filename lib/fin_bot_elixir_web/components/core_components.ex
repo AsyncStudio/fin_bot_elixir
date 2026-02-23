@@ -481,7 +481,7 @@ defmodule FinBotElixirWeb.CoreComponents do
     ~H"""
     <div class="flex items-center gap-2" {@rest}>
       <div class="rounded-lg flex items-center justify-center">
-        <img src="images/finbot_logo_transparent.png" alt="FinBot Logo" class={[@image_class, "rounded-full"]} />
+        <img src="/images/finbot_logo_transparent.png" alt="FinBot Logo" class={[@image_class, "rounded-full"]} />
       </div>
       <span class={[@text_class, "font-bold"]}>{gettext("FinBot")}</span>
     </div>
