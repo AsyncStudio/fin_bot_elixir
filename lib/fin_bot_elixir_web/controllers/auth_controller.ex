@@ -3,23 +3,24 @@ defmodule FinBotElixirWeb.AuthController do
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Accounts
 
-  # O usuário clica aqui (ex: /auth/google?token=FIN-A123)
+  # Sem parâmetros → exibe a tela de login com o botão "Sign-In with Google"
   def request(conn, %{"provider" => "google"} = params) do
-    # Guardamos o token na sessão para usar no callback
-    conn = if params["token"], do: put_session(conn, :linking_token, params["token"]), else: conn
-
-    config = google_config()
-
-    case Assent.Strategy.Google.authorize_url(config) do
-      {:ok, %{url: url, session_params: session_params}} ->
+    cond do
+      params["token"] ->
+        # Tem token de vinculação → inicia OAuth para linkar conta (ex: /auth/google?token=FIN-A123)
         conn
-        |> put_session(:google_session_params, session_params)
-        |> redirect(external: url)
+        |> put_session(:linking_token, params["token"])
+        |> start_google_oauth()
 
-      {:error, _reason} ->
-        conn
-        |> put_flash(:error, "Erro ao iniciar o login com Google.")
-        |> redirect(to: ~p"/")
+      params["login"] == "true" ->
+        # Botão "Sign-In with Google" foi clicado → inicia OAuth para login
+        start_google_oauth(conn)
+
+      true ->
+        # Sem token e sem indicador de login → exibe tela de login
+        current_user = conn.assigns[:current_user]
+        current_scope = if current_user, do: %{user: current_user}, else: nil
+        render(conn, :login, current_scope: current_scope)
     end
   end
 
@@ -66,6 +67,22 @@ defmodule FinBotElixirWeb.AuthController do
     conn
     |> configure_session(drop: true)
     |> redirect(to: ~p"/")
+  end
+
+  defp start_google_oauth(conn) do
+    config = google_config()
+
+    case Assent.Strategy.Google.authorize_url(config) do
+      {:ok, %{url: url, session_params: session_params}} ->
+        conn
+        |> put_session(:google_session_params, session_params)
+        |> redirect(external: url)
+
+      {:error, _reason} ->
+        conn
+        |> put_flash(:error, "Erro ao iniciar o login com Google.")
+        |> redirect(to: ~p"/")
+    end
   end
 
   defp google_config do
