@@ -68,7 +68,7 @@ defmodule FinBotElixirWeb.CoreComponents do
         <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
         <div>
           <p :if={@title} class="font-semibold">{@title}</p>
-          
+
           <p>{msg}</p>
         </div>
          <div class="flex-1" />
@@ -286,10 +286,10 @@ defmodule FinBotElixirWeb.CoreComponents do
     <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
       <div>
         <h1 class="text-lg font-semibold leading-8">{render_slot(@inner_block)}</h1>
-        
+
         <p :if={@subtitle != []} class="text-sm text-base-content/70">{render_slot(@subtitle)}</p>
       </div>
-      
+
       <div class="flex-none">{render_slot(@actions)}</div>
     </header>
     """
@@ -331,11 +331,11 @@ defmodule FinBotElixirWeb.CoreComponents do
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>
-          
+
           <th :if={@action != []}><span class="sr-only">{gettext("Actions")}</span></th>
         </tr>
       </thead>
-      
+
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
         <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
           <td
@@ -345,7 +345,7 @@ defmodule FinBotElixirWeb.CoreComponents do
           >
             {render_slot(col, @row_item.(row))}
           </td>
-          
+
           <td :if={@action != []} class="w-0 font-semibold">
             <div class="flex gap-4">
               <%= for action <- @action do %>
@@ -379,7 +379,7 @@ defmodule FinBotElixirWeb.CoreComponents do
       <li :for={item <- @item} class="list-row">
         <div class="list-col-grow">
           <div class="font-bold">{item.title}</div>
-          
+
           <div>{render_slot(item)}</div>
         </div>
       </li>
@@ -463,5 +463,28 @@ defmodule FinBotElixirWeb.CoreComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  @doc """
+  Renders the FinBot logo with text.
+
+  ## Examples
+
+      <.logo />
+      <.logo image_class="w-10 h-10" text_class="text-lg" />
+  """
+  attr :image_class, :string, default: "w-12 h-12", doc: "CSS classes for the logo image"
+  attr :text_class, :string, default: "text-xl", doc: "CSS classes for the logo text"
+  attr :rest, :global, doc: "the arbitrary HTML attributes to add to the container"
+
+  def logo(assigns) do
+    ~H"""
+    <div class="flex items-center gap-2" {@rest}>
+      <div class="rounded-lg flex items-center justify-center">
+        <img src="images/finbot_logo_transparent.png" alt="FinBot Logo" class={[@image_class, "rounded-full"]} />
+      </div>
+      <span class={[@text_class, "font-bold"]}>{gettext("FinBot")}</span>
+    </div>
+    """
   end
 end

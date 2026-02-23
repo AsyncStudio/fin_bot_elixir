@@ -38,19 +38,21 @@ defmodule FinBotElixirWeb.Layouts do
     <header class="border-b border-base-300 bg-base-200/60 backdrop-blur-sm">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <.link navigate={~p"/"} class="text-xl font-bold text-base-content">
-          Fin Bot
+          <.logo />
         </.link>
         <div class="flex items-center gap-2">
           <%= if @current_scope && @current_scope.user do %>
+            <!--
             <button
               type="button"
               class="rounded-lg border border-base-300 px-3 py-1.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
             >
               {gettext("Profile")}
             </button>
+            -->
             <.link
               navigate={~p"/logout"}
-              class="rounded-lg bg-base-300/70 px-3 py-1.5 text-sm font-medium text-base-content hover:bg-base-300 transition-colors"
+              class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-base-content hover:bg-primary/50 transition-colors"
             >
               {gettext("Logout")}
             </.link>
@@ -65,7 +67,7 @@ defmodule FinBotElixirWeb.Layouts do
         </div>
       </div>
     </header>
-    <main class="px-4 py-10 sm:px-6 lg:px-8">
+    <main class="px-4 py-10 sm:px-6 lg:px-8" style="padding-top: 0px;">
       <div class="mx-auto max-w-6xl">{render_slot(@inner_block)}</div>
     </main>
     <.flash_group flash={@flash} />
