@@ -76,6 +76,7 @@ defmodule FinBotElixirWeb.DashLive do
       month_label: month_label,
       all_categories: all_categories,
       transactions: transactions,
+      all_tags: Financial.list_all_tag_names_for_user(socket.assigns.user_id),
       editing_id: nil,
       edit_form: nil,
       confirm_delete_id: nil,
@@ -202,6 +203,58 @@ defmodule FinBotElixirWeb.DashLive do
          socket
          |> assign(confirm_delete_id: nil)
          |> put_flash(:error, gettext("Failed to delete transaction."))}
+    end
+  end
+
+  @impl true
+  def handle_event("add_tag", %{"transaction_id" => id, "tag_name" => tag_name}, socket) do
+    tag_name = String.trim(tag_name)
+
+    if tag_name == "" do
+      {:noreply, socket}
+    else
+      transaction = Financial.get_transaction_for_user!(id, socket.assigns.user_id)
+
+      case Financial.add_tag_to_transaction(transaction, tag_name) do
+        {:ok, updated_transaction} ->
+          updated_transactions =
+            Enum.map(socket.assigns.transactions, fn t ->
+              if t.id == id, do: updated_transaction, else: t
+            end)
+
+          all_tags =
+            if tag_name in socket.assigns.all_tags do
+              socket.assigns.all_tags
+            else
+              Financial.list_all_tag_names_for_user(socket.assigns.user_id)
+            end
+
+          {:noreply,
+           socket
+           |> assign(transactions: updated_transactions, all_tags: all_tags)
+           |> push_event("reset_form", %{id: "add-tag-form-#{id}"})}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to add tag."))}
+      end
+    end
+  end
+
+  @impl true
+  def handle_event("remove_tag", %{"transaction_id" => id, "tag_name" => tag_name}, socket) do
+    transaction = Financial.get_transaction_for_user!(id, socket.assigns.user_id)
+
+    case Financial.remove_tag_from_transaction(transaction, tag_name) do
+      {:ok, updated_transaction} ->
+        updated_transactions =
+          Enum.map(socket.assigns.transactions, fn t ->
+            if t.id == id, do: updated_transaction, else: t
+          end)
+
+        {:noreply, assign(socket, transactions: updated_transactions)}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to remove tag."))}
     end
   end
 

@@ -7,6 +7,7 @@ defmodule FinBotElixir.Financial do
   alias FinBotElixir.Repo
 
   alias FinBotElixir.Financial.Transaction
+  alias FinBotElixir.Financial.Tag
 
   # Agrupa gastos por categoria para a tela inicial
   def list_category_usage(user_id) do
@@ -85,7 +86,8 @@ defmodule FinBotElixir.Financial do
         where:
           t.user_id == ^user_id and t.category == ^category_name and
             t.inserted_at >= ^start_dt and t.inserted_at <= ^end_dt,
-        order_by: [desc: t.inserted_at]
+        order_by: [desc: t.inserted_at],
+        preload: [:tags]
 
     Repo.all(query)
   end
@@ -229,6 +231,62 @@ defmodule FinBotElixir.Financial do
   """
   def change_transaction(%Transaction{} = transaction, attrs \\ %{}) do
     Transaction.changeset(transaction, attrs)
+  end
+
+  @doc """
+  Returns all unique tag names used in transactions belonging to the given user.
+  """
+  def list_all_tag_names_for_user(user_id) do
+    from(tag in Tag,
+      join: tt in "transaction_tags", on: tt.tag_id == tag.id,
+      join: t in Transaction, on: t.id == tt.transaction_id,
+      where: t.user_id == ^user_id,
+      select: tag.name,
+      distinct: true,
+      order_by: tag.name
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Adds a tag (by name) to a transaction. Creates the tag if it does not exist.
+  """
+  def add_tag_to_transaction(%Transaction{} = transaction, tag_name) do
+    tag_name = String.trim(tag_name)
+
+    tag =
+      case Repo.insert(Tag.changeset(%Tag{}, %{name: tag_name}),
+             on_conflict: :nothing,
+             conflict_target: :name
+           ) do
+        {:ok, %Tag{id: nil}} -> Repo.get_by!(Tag, name: tag_name)
+        {:ok, tag} -> tag
+        {:error, _} -> Repo.get_by!(Tag, name: tag_name)
+      end
+
+    transaction = Repo.preload(transaction, :tags)
+
+    if Enum.any?(transaction.tags, &(&1.name == tag_name)) do
+      {:ok, transaction}
+    else
+      transaction
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:tags, [tag | transaction.tags])
+      |> Repo.update()
+    end
+  end
+
+  @doc """
+  Removes a tag (by name) from a transaction.
+  """
+  def remove_tag_from_transaction(%Transaction{} = transaction, tag_name) do
+    transaction = Repo.preload(transaction, :tags)
+    new_tags = Enum.reject(transaction.tags, &(&1.name == tag_name))
+
+    transaction
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:tags, new_tags)
+    |> Repo.update()
   end
 
   defp month_range(month, year) do
