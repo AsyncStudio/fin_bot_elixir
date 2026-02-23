@@ -5,22 +5,27 @@ defmodule FinBotElixirWeb.AuthController do
 
   # Sem parâmetros → exibe a tela de login com o botão "Sign-In with Google"
   def request(conn, %{"provider" => "google"} = params) do
-    cond do
-      params["token"] ->
-        # Tem token de vinculação → inicia OAuth para linkar conta (ex: /auth/google?token=FIN-A123)
-        conn
-        |> put_session(:linking_token, params["token"])
-        |> start_google_oauth()
+    current_user = conn.assigns[:current_user]
 
-      params["login"] == "true" ->
-        # Botão "Sign-In with Google" foi clicado → inicia OAuth para login
-        start_google_oauth(conn)
+    if current_user do
+      redirect(conn, to: ~p"/dashboard")
+    else
+      cond do
+        params["token"] ->
+          # Tem token de vinculação → inicia OAuth para linkar conta (ex: /auth/google?token=FIN-A123)
+          conn
+          |> put_session(:linking_token, params["token"])
+          |> start_google_oauth()
 
-      true ->
-        # Sem token e sem indicador de login → exibe tela de login
-        current_user = conn.assigns[:current_user]
-        current_scope = if current_user, do: %{user: current_user}, else: nil
-        render(conn, :login, current_scope: current_scope)
+        params["login"] == "true" ->
+          # Botão "Sign-In with Google" foi clicado → inicia OAuth para login
+          start_google_oauth(conn)
+
+        true ->
+          # Sem token e sem indicador de login → exibe tela de login
+          current_scope = %{user: current_user}
+          render(conn, :login, current_scope: current_scope)
+      end
     end
   end
 

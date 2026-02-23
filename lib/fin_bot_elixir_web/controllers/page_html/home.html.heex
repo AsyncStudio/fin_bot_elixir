@@ -2,9 +2,19 @@
   <nav class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
       <.logo />
-      <button class="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-        {gettext("Start Chatting")}
-      </button>
+      <div class="flex flex-row gap-2">
+        <button class="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+          {gettext("Start Chatting")}
+        </button>
+        <.link
+          navigate={~p"/auth/google"}
+          class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-content hover:bg-primary/90 transition-colors"
+        >
+          <button class="px-2 py-1 justify-center items-center rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+            {gettext("Login")}
+          </button>
+        </.link>
+      </div>
     </div>
   </nav>
 

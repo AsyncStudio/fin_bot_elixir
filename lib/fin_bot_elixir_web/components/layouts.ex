@@ -42,14 +42,6 @@ defmodule FinBotElixirWeb.Layouts do
         </.link>
         <div class="flex items-center gap-2">
           <%= if @current_scope && @current_scope.user do %>
-            <!--
-            <button
-              type="button"
-              class="rounded-lg border border-base-300 px-3 py-1.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
-            >
-              {gettext("Profile")}
-            </button>
-            -->
             <span class="text-xs mx-8">{@current_scope.user.full_name}</span>
             <.link
               navigate={~p"/logout"}
