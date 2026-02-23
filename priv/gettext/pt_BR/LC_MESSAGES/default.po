@@ -621,3 +621,6 @@ msgstr "LinkedIn"
 #, elixir-autogen, elixir-format
 msgid "(c) 2024 FinBot. All rights reserved."
 msgstr "(c) 2024 FinBot. Todos os direitos reservados."
+
+msgid "I want to use FinBot"
+msgstr "Quero usar FinBot"

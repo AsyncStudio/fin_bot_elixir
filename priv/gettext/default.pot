@@ -598,3 +598,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "(c) 2026 FinBot. All rights reserved."
 msgstr ""
+
+msgid "I want to use FinBot"
+msgstr ""
