@@ -42,6 +42,20 @@ defmodule FinBotElixir.Financial.Transaction do
     |> validate_inclusion(:category, category_values())
   end
 
+  @doc false
+  def ui_changeset(transaction, attrs) do
+    transaction
+    |> cast(attrs, [:amount, :description, :category, :type, :user_id])
+    |> validate_required([:amount, :description, :category, :type])
+    |> validate_change(:amount, fn :amount, value ->
+      case Decimal.compare(value, Decimal.new(0)) do
+        :gt -> []
+        _ -> [amount: "must be greater than 0"]
+      end
+    end)
+    |> validate_inclusion(:category, category_values())
+  end
+
   def categories, do: @categories
 
   def category_values, do: Enum.map(@categories, & &1.name)

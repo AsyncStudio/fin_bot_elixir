@@ -52,9 +52,9 @@ defmodule FinBotElixirWeb.DashLive do
     transactions = Financial.list_by_category(socket.assigns.user_id, name, month, year)
 
     category_type =
-      case List.first(transactions) do
+      case Transaction.categories() |> Enum.find(&(&1.name == name)) do
         nil -> "expense"
-        t -> t.type
+        cat -> cat.type
       end
 
     category_total =
@@ -74,7 +74,9 @@ defmodule FinBotElixirWeb.DashLive do
       all_categories: Transaction.categories(),
       editing_id: nil,
       edit_form: nil,
-      confirm_delete_id: nil
+      confirm_delete_id: nil,
+      show_add_modal: false,
+      add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
     )
   end
 
@@ -88,6 +90,53 @@ defmodule FinBotElixirWeb.DashLive do
   @impl true
   def handle_event("cancel_edit", _params, socket) do
     {:noreply, assign(socket, editing_id: nil, edit_form: nil)}
+  end
+
+  @impl true
+  def handle_event("open_add_modal", _params, socket) do
+    add_form = to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
+    {:noreply, assign(socket, show_add_modal: true, add_form: add_form)}
+  end
+
+  @impl true
+  def handle_event("cancel_add", _params, socket) do
+    {:noreply, assign(socket, show_add_modal: false)}
+  end
+
+  @impl true
+  def handle_event("add_transaction", %{"transaction" => params}, socket) do
+    params =
+      Map.merge(params, %{
+        "category" => socket.assigns.category_name,
+        "type" => socket.assigns.category_type
+      })
+
+    case Financial.create_transaction_for_ui(socket.assigns.user_id, params) do
+      {:ok, _transaction} ->
+        transactions =
+          Financial.list_by_category(
+            socket.assigns.user_id,
+            socket.assigns.category_name,
+            socket.assigns.filter_month,
+            socket.assigns.filter_year
+          )
+
+        category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+
+        {:noreply,
+         socket
+         |> assign(
+           transactions: transactions,
+           category_total: category_total,
+           transaction_count: length(transactions),
+           show_add_modal: false,
+           add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
+         )
+         |> put_flash(:info, gettext("Transaction created successfully."))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, add_form: to_form(changeset, as: :transaction))}
+    end
   end
 
   @impl true
