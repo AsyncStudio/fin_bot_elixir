@@ -3,6 +3,10 @@ defmodule FinBotElixir.Gemini.Interactions do
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Financial
 
+  @data_query_response "This capability is under construction. Hold fast! 🔧"
+  @unrelated_response "This topic is unrelated. Please talk only about finances. 💰"
+  @finance_tip_fallback "I was unable to generate advice at this time. Please try again."
+
   @expense_responses [
     "Anotado! Esse gasto vai pesar no seu orçamento esse mês. 😬",
     "Gasto registrado! Lembre-se de revisar seus gastos no final do mês para manter o controle. 📊",
@@ -23,13 +27,42 @@ defmodule FinBotElixir.Gemini.Interactions do
     "Ops, não consegui extrair uma transação dessa mensagem. Certifique-se de incluir um valor e uma descrição clara."
   ]
 
+  # region: Context dispatcher
+
+  @doc """
+  Handles the appropriate response for each classified message type.
+  Receives the message context, the user, and optionally the saved transaction.
+  """
+  def handle_message_context(%{message_type: :transaction} = context, user, transaction) do
+    transaction = FinBotElixir.Repo.preload(transaction, :user)
+    count = Financial.count_user_transactions(transaction.user_id)
+
+    smart_process(transaction, count, context.ai_response)
+    |> Client.send_message(user.whatsapp_number)
+  end
+
+  def handle_message_context(%{message_type: :data_query}, user, _transaction) do
+    Client.send_message(@data_query_response, user.whatsapp_number)
+  end
+
+  def handle_message_context(%{message_type: :finance_tip} = context, user, _transaction) do
+    response = context.ai_response || @finance_tip_fallback
+    Client.send_message(response, user.whatsapp_number)
+  end
+
+  def handle_message_context(%{message_type: :unrelated}, user, _transaction) do
+    Client.send_message(@unrelated_response, user.whatsapp_number)
+  end
+
+  # endregion
+
   # region: Msg Switch
 
   def process_response(%Transaction{} = transaction) do
     transaction = FinBotElixir.Repo.preload(transaction, :user)
     count = Financial.count_user_transactions(transaction.user_id)
 
-    smart_process(transaction, count)
+    smart_process(transaction, count, nil)
     |> Client.send_message(transaction.user.whatsapp_number)
   end
 
@@ -38,19 +71,23 @@ defmodule FinBotElixir.Gemini.Interactions do
     |> Client.send_message(whatsapp_number)
   end
 
-  defp smart_process(%Transaction{} = transaction, count) when count <= 1 do
+  defp smart_process(%Transaction{} = transaction, count, _ai_response) when count <= 1 do
     welcome_and_process(transaction.user, transaction.raw_input)
   end
 
-  defp smart_process(%Transaction{} = transaction, count) when count == 5 do
+  defp smart_process(%Transaction{} = transaction, count, _ai_response) when count == 5 do
     process_with_cta(transaction.user, transaction.raw_input)
   end
 
-  defp smart_process(%Transaction{type: "expense"} = transaction, _count) do
+  defp smart_process(_transaction, _count, ai_response) when not is_nil(ai_response) do
+    ai_response
+  end
+
+  defp smart_process(%Transaction{type: "expense"}, _count, _ai_response) do
     process_return_random(@expense_responses)
   end
 
-  defp smart_process(%Transaction{type: "income"} = transaction, _count) do
+  defp smart_process(%Transaction{type: "income"}, _count, _ai_response) do
     process_return_random(@income_responses)
   end
 
@@ -58,8 +95,7 @@ defmodule FinBotElixir.Gemini.Interactions do
 
   # region: Helpers
 
-  defp welcome_and_process(user, text) do
-    # TODO: welcome message
+  defp welcome_and_process(user, _text) do
     """
     Salve, #{user.full_name || ""}! 👋
     Já anotei seu primeiro gasto aqui.
@@ -69,9 +105,7 @@ defmodule FinBotElixir.Gemini.Interactions do
     """
   end
 
-  defp process_with_cta(user, text) do
-    # TODO: CTA
-    # user = Accounts.get_user(user)
+  defp process_with_cta(user, _text) do
     """
     Boa! Mais um anotado. ✅
 

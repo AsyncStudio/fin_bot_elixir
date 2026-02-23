@@ -1,26 +1,38 @@
 defmodule FinBotElixir.Gemini.Client do
-  @api_key System.get_env("GEMINI_API_KEY")
   @model "gemini-1.5-flash"
 
   require Logger
 
-  alias FinBotElixir.Financial
   alias FinBotElixir.Financial.Transaction
-  alias Decimal, as: D
 
-  def analyze_input(text) do
-    prompt = build_prompt(text)
+  @doc """
+  Classifies the user message and, in a single AI call, extracts all data needed
+  to handle the response. Returns `{:ok, context}` where context is a map with:
+    - `:message_type` — one of `:transaction`, `:data_query`, `:finance_tip`, `:unrelated`
+    - `:transaction_data` — map with transaction fields, or `nil`
+    - `:ai_response` — AI-generated reply text (for transactions and finance tips), or `nil`
+    - `:original_text` — the raw user input
+  """
+  def classify_message(text) do
+    prompt = build_classification_prompt(text)
 
     {:ok, response} =
       Gemini.generate(prompt,
         response_json_schema: %{
           "type" => "object",
+          "required" => ["message_type"],
           "properties" => %{
-            "amount" => %{"type" => "number"},
-            "description" => %{"type" => "string"},
-            "category" => %{"type" => "string"},
-            "type" => %{"type" => "string"},
-            "is_transaction" => %{"type" => "boolean"}
+            "message_type" => %{"type" => "string"},
+            "transaction_data" => %{
+              "type" => "object",
+              "properties" => %{
+                "amount" => %{"type" => "number"},
+                "description" => %{"type" => "string"},
+                "category" => %{"type" => "string"},
+                "type" => %{"type" => "string"}
+              }
+            },
+            "ai_response" => %{"type" => "string"}
           }
         },
         response_mime_type: "application/json",
@@ -28,41 +40,59 @@ defmodule FinBotElixir.Gemini.Client do
       )
 
     with {:ok, data} <- parse_response(response) do
-      cond do
-        data["is_transaction"] == false ->
-          Logger.info("Entrada analisada como NÃO transação: #{text}")
-          {:error, :not_a_transaction}
+      message_type = parse_message_type(data["message_type"])
 
-        true ->
-          Logger.info("Entrada analisada como transação válida: #{text}\nPrompt usado: #{prompt}\nResposta da IA: #{inspect(data)}")
-          {:ok, data}
-      end
+      context = %{
+        message_type: message_type,
+        transaction_data: data["transaction_data"],
+        ai_response: data["ai_response"],
+        original_text: text
+      }
+
+      Logger.info("Mensagem classificada como '#{message_type}': #{text}")
+      {:ok, context}
     end
   end
 
-  defp build_prompt(text) do
+  defp parse_message_type("transaction"), do: :transaction
+  defp parse_message_type("data_query"), do: :data_query
+  defp parse_message_type("finance_tip"), do: :finance_tip
+  defp parse_message_type(_), do: :unrelated
+
+  defp build_classification_prompt(text) do
     categories = Transaction.category_values() |> Enum.join("|")
 
     """
-    Analise: "#{text}". Faça uma inferência para extrair os seguintes dados em JSON:
+    Analyze the following message and classify it into exactly one of these types:
+    - "transaction": a financial transaction to be recorded (expense or income with a clear amount)
+    - "data_query": a question about the user's recorded financial data or spending history
+    - "finance_tip": a question or request about personal finance tips, strategies, or habits
+    - "unrelated": anything not related to personal finance
+
+    Message: "#{text}"
+
+    Return a JSON object with:
     {
-      "amount": positive number,
-      "description": string,
-      "category": #{categories},
-      "type": expense|income,
-      "is_transaction": boolean
+      "message_type": "transaction|data_query|finance_tip|unrelated",
+      "transaction_data": {
+        "amount": positive number,
+        "description": short descriptive name (e.g. "Uber", "Salary"),
+        "category": one of [#{categories}],
+        "type": "expense|income"
+      },
+      "ai_response": helpful reply text for the user
     }
-    Se dúvida no type, use expense.
-    Nunca deixe a categoria em branco. Se dúvida na categoria, use "other". Use as categorias exatamente como fornecidas.
-    Análise o contexto da mensagem para determinar a categoria. Exemplo, se a mensagem for "gastei 50 com Uber", a categoria deve ser "transport". Se for "recebi 2000 de salário", a categoria deve ser "salary".
-    Para `description`, dê um nome curto baseado no conteúdo da mensagem, como "Uber" ou "Salário". Se não conseguir extrair uma descrição, use o valor da categoria como descrição.
-    Se a mensagem não contém uma transação válida (sem valor, descrição vaga, ou claramente não é uma transação), defina "is_transaction" como false.
-    Retorne APENAS o JSON.
+
+    Rules:
+    - For "transaction": fill transaction_data and set ai_response to a short friendly confirmation in the same language as the user's message. Category defaults to "other" if unsure; type defaults to "expense" if unsure.
+    - For "finance_tip": set transaction_data to null and set ai_response to a helpful, practical finance tip or answer in the same language as the user's message.
+    - For "data_query" and "unrelated": set transaction_data to null and ai_response to null.
+
+    Return ONLY valid JSON.
     """
   end
 
   defp parse_response(body) do
-    # O Gemini retorna uma estrutura aninhada: candidates -> content -> parts -> text
     text_response =
       body.candidates
       |> List.first()
