@@ -25,7 +25,6 @@
       </form>
     </div>
   </div>
-
   <%= if @live_action==:index do %>
     <%!-- Header --%>
       <header
@@ -226,15 +225,14 @@
                       </button>
                     </div>
 
-                    <%= if @transactions==[] do %>
+                    <%= if @transaction_count == 0 do %>
                       <div class="rounded-lg border border-base-300 bg-base-200/50 p-8 text-center">
                         <p class="text-base-content/60">{gettext("No records found.")}</p>
                       </div>
-                      <% end %>
-
-                        <div class="space-y-2">
-                          <%= for t <- @transactions do %>
-                            <div id={"transaction-#{t.id}"} class="rounded-lg border border-base-300 bg-base-200/50 transition-colors hover:bg-base-200">
+                    <% else %>
+                      <div class="space-y-2" id="transactions-list" phx-update="stream">
+                          <%= for {id, t} <- @streams.transactions do %>
+                            <div id={id} class="rounded-lg border border-base-300 bg-base-200/50 transition-colors hover:bg-base-200">
                               <%= if t.id == @editing_id do %>
                                 <%!-- Edit mode --%>
                                 <.form for={@edit_form} id={"edit-form-#{t.id}"} phx-submit="save_transaction" class="p-4">
@@ -320,6 +318,7 @@
                             </div>
                             <% end %>
                         </div>
+                    <% end %>
                   </div>
 
                   <%!-- Delete Confirmation Modal --%>
@@ -411,5 +410,5 @@
                       </div>
                     </div>
                   <% end %>
-                  <% end %>
+  <% end %>
 </Layouts.app>

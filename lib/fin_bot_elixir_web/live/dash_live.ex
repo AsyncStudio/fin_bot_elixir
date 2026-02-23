@@ -41,7 +41,10 @@ defmodule FinBotElixirWeb.DashLive do
       income_categories: income_categories,
       total_expenses: summary.total_expenses,
       total_income: summary.total_income,
-      net_balance: summary.net_balance
+      net_balance: summary.net_balance,
+      confirm_delete_id: nil,
+      show_add_modal: false,
+      editing_id: nil
     )
   end
 
@@ -50,34 +53,35 @@ defmodule FinBotElixirWeb.DashLive do
     month = socket.assigns.filter_month
     year = socket.assigns.filter_year
     transactions = Financial.list_by_category(socket.assigns.user_id, name, month, year)
+    all_categories = Transaction.categories()
 
     category_type =
-      case Transaction.categories() |> Enum.find(&(&1.name == name)) do
+      case all_categories |> Enum.find(&(&1.name == name)) do
         nil -> "expense"
         cat -> cat.type
       end
 
     category_total =
-      transactions
-      |> Enum.reduce(Decimal.new(0), &Decimal.add(&1.amount, &2))
+      Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
 
     month_label = month_year_label(month, year)
 
-    assign(socket,
+    socket
+    |> assign(
       page_title: "#{name}",
       category_name: name,
       category_type: category_type,
       category_total: category_total,
       transaction_count: length(transactions),
       month_label: month_label,
-      transactions: transactions,
-      all_categories: Transaction.categories(),
+      all_categories: all_categories,
       editing_id: nil,
       edit_form: nil,
       confirm_delete_id: nil,
       show_add_modal: false,
       add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
     )
+    |> stream(:transactions, transactions, reset: true)
   end
 
   @impl true
@@ -112,23 +116,15 @@ defmodule FinBotElixirWeb.DashLive do
       })
 
     case Financial.create_transaction_for_ui(socket.assigns.user_id, params) do
-      {:ok, _transaction} ->
-        transactions =
-          Financial.list_by_category(
-            socket.assigns.user_id,
-            socket.assigns.category_name,
-            socket.assigns.filter_month,
-            socket.assigns.filter_year
-          )
-
-        category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+      {:ok, transaction} ->
+        new_total = Decimal.add(socket.assigns.category_total, transaction.amount)
 
         {:noreply,
          socket
+         |> stream(:transactions, [transaction])
          |> assign(
-           transactions: transactions,
-           category_total: category_total,
-           transaction_count: length(transactions),
+           category_total: new_total,
+           transaction_count: socket.assigns.transaction_count + 1,
            show_add_modal: false,
            add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
          )
@@ -143,23 +139,16 @@ defmodule FinBotElixirWeb.DashLive do
   def handle_event("save_transaction", %{"transaction" => params}, socket) do
     with editing_id when not is_nil(editing_id) <- socket.assigns.editing_id,
          transaction <- Financial.get_transaction_for_user!(editing_id, socket.assigns.user_id),
-         {:ok, _transaction} <- Financial.update_transaction(transaction, params) do
-      transactions =
-        Financial.list_by_category(
-          socket.assigns.user_id,
-          socket.assigns.category_name,
-          socket.assigns.filter_month,
-          socket.assigns.filter_year
-        )
-
-      category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+         {:ok, updated_transaction} <- Financial.update_transaction(transaction, params) do
+      # Calculate the difference to update total efficiently
+      amount_diff = Decimal.sub(updated_transaction.amount, transaction.amount)
+      new_total = Decimal.add(socket.assigns.category_total, amount_diff)
 
       {:noreply,
        socket
+       |> stream(:transactions, [updated_transaction])
        |> assign(
-         transactions: transactions,
-         category_total: category_total,
-         transaction_count: length(transactions),
+         category_total: new_total,
          editing_id: nil,
          edit_form: nil
        )
@@ -189,22 +178,14 @@ defmodule FinBotElixirWeb.DashLive do
 
     case Financial.delete_transaction(transaction) do
       {:ok, _transaction} ->
-        transactions =
-          Financial.list_by_category(
-            socket.assigns.user_id,
-            socket.assigns.category_name,
-            socket.assigns.filter_month,
-            socket.assigns.filter_year
-          )
-
-        category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
+        new_total = Decimal.sub(socket.assigns.category_total, transaction.amount)
 
         {:noreply,
          socket
+         |> stream_delete(:transactions, transaction)
          |> assign(
-           transactions: transactions,
-           category_total: category_total,
-           transaction_count: length(transactions),
+           category_total: new_total,
+           transaction_count: socket.assigns.transaction_count - 1,
            confirm_delete_id: nil
          )
          |> put_flash(:info, gettext("Transaction deleted successfully."))}
@@ -235,7 +216,7 @@ defmodule FinBotElixirWeb.DashLive do
         :show -> apply_action(socket, :show, %{"name" => socket.assigns.category_name})
       end
 
-    {:noreply, socket}
+    {:noreply, socket |> assign(confirm_delete_id: nil, show_add_modal: false, editing_id: nil)}
   end
 
   @doc """
