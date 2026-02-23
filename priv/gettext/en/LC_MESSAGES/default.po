@@ -11,6 +11,16 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: lib/fin_bot_elixir_web/controllers/auth_html/login.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Fin Bot"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/auth_html/login.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Sign-In with Google"
+msgstr ""
+
 #: lib/fin_bot_elixir_web/components/core_components.ex:335
 #, elixir-autogen, elixir-format
 msgid "Actions"
