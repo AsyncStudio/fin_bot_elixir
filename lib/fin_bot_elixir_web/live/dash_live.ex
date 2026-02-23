@@ -6,7 +6,15 @@ defmodule FinBotElixirWeb.DashLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
-    {:ok, assign(socket, user_id: user.id, user_name: user.full_name)}
+    now = Date.utc_today()
+
+    {:ok,
+     assign(socket,
+       user_id: user.id,
+       user_name: user.full_name,
+       filter_month: now.month,
+       filter_year: now.year
+     )}
   end
 
   @impl true
@@ -16,14 +24,15 @@ defmodule FinBotElixirWeb.DashLive do
 
   # Lógica para a tela de LISTA (dashboard principal)
   defp apply_action(socket, :index, _params) do
-    summary = Financial.dashboard_summary(socket.assigns.user_id)
+    month = socket.assigns.filter_month
+    year = socket.assigns.filter_year
+    summary = Financial.dashboard_summary(socket.assigns.user_id, month, year)
     categories = Transaction.categories()
 
     expense_categories = build_category_cards(categories, summary.expense_categories, "expense")
     income_categories = build_category_cards(categories, summary.income_categories, "income")
 
-    now = Date.utc_today()
-    month_label = Calendar.strftime(now, "%B %Y")
+    month_label = month_year_label(month, year)
 
     assign(socket,
       page_title: "Minhas Finanças",
@@ -38,7 +47,9 @@ defmodule FinBotElixirWeb.DashLive do
 
   # Lógica para a tela de EXTRATO
   defp apply_action(socket, :show, %{"name" => name}) do
-    transactions = Financial.list_by_category(socket.assigns.user_id, name)
+    month = socket.assigns.filter_month
+    year = socket.assigns.filter_year
+    transactions = Financial.list_by_category(socket.assigns.user_id, name, month, year)
 
     category_type =
       case List.first(transactions) do
@@ -50,8 +61,7 @@ defmodule FinBotElixirWeb.DashLive do
       transactions
       |> Enum.reduce(Decimal.new(0), &Decimal.add(&1.amount, &2))
 
-    now = Date.utc_today()
-    month_label = Calendar.strftime(now, "%B %Y")
+    month_label = month_year_label(month, year)
 
     assign(socket,
       page_title: "#{name}",
@@ -85,7 +95,14 @@ defmodule FinBotElixirWeb.DashLive do
     with editing_id when not is_nil(editing_id) <- socket.assigns.editing_id,
          transaction <- Financial.get_transaction_for_user!(editing_id, socket.assigns.user_id),
          {:ok, _transaction} <- Financial.update_transaction(transaction, params) do
-      transactions = Financial.list_by_category(socket.assigns.user_id, socket.assigns.category_name)
+      transactions =
+        Financial.list_by_category(
+          socket.assigns.user_id,
+          socket.assigns.category_name,
+          socket.assigns.filter_month,
+          socket.assigns.filter_year
+        )
+
       category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
 
       {:noreply,
@@ -123,7 +140,14 @@ defmodule FinBotElixirWeb.DashLive do
 
     case Financial.delete_transaction(transaction) do
       {:ok, _transaction} ->
-        transactions = Financial.list_by_category(socket.assigns.user_id, socket.assigns.category_name)
+        transactions =
+          Financial.list_by_category(
+            socket.assigns.user_id,
+            socket.assigns.category_name,
+            socket.assigns.filter_month,
+            socket.assigns.filter_year
+          )
+
         category_total = Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
 
         {:noreply,
@@ -142,6 +166,27 @@ defmodule FinBotElixirWeb.DashLive do
          |> assign(confirm_delete_id: nil)
          |> put_flash(:error, gettext("Failed to delete transaction."))}
     end
+  end
+
+  @impl true
+  def handle_event("filter_date", %{"month" => month_str, "year" => year_str}, socket) do
+    month = String.to_integer(month_str)
+
+    year =
+      case Integer.parse(year_str) do
+        {y, ""} when y >= 1900 and y <= 2100 -> y
+        _ -> socket.assigns.filter_year
+      end
+
+    socket = assign(socket, filter_month: month, filter_year: year)
+
+    socket =
+      case socket.assigns.live_action do
+        :index -> apply_action(socket, :index, %{})
+        :show -> apply_action(socket, :show, %{"name" => socket.assigns.category_name})
+      end
+
+    {:noreply, socket}
   end
 
   @doc """
@@ -224,5 +269,27 @@ defmodule FinBotElixirWeb.DashLive do
     all_categories
     |> Enum.filter(&(&1.type == type))
     |> Enum.map(&{category_label(&1.name), &1.name})
+  end
+
+  def month_options do
+    [
+      {gettext("January"), 1},
+      {gettext("February"), 2},
+      {gettext("March"), 3},
+      {gettext("April"), 4},
+      {gettext("May"), 5},
+      {gettext("June"), 6},
+      {gettext("July"), 7},
+      {gettext("August"), 8},
+      {gettext("September"), 9},
+      {gettext("October"), 10},
+      {gettext("November"), 11},
+      {gettext("December"), 12}
+    ]
+  end
+
+  defp month_year_label(month, year) do
+    {month_name, _} = Enum.find(month_options(), fn {_, m} -> m == month end)
+    "#{month_name} #{year}"
   end
 end

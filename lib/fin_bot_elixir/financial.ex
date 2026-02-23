@@ -27,13 +27,16 @@ defmodule FinBotElixir.Financial do
   end
 
   @doc """
-  Groups categories by type (expense/income) and sums their totals.
+  Groups categories by type (expense/income) and sums their totals for a given month and year.
   Returns a map with :expense_categories, :income_categories, :total_income, :total_expenses, :net_balance.
   """
-  def dashboard_summary(user_id) do
+  def dashboard_summary(user_id, month, year) do
+    {start_dt, end_dt} = month_range(month, year)
+
     categories =
       from(t in Transaction,
-        where: t.user_id == ^user_id,
+        where:
+          t.user_id == ^user_id and t.inserted_at >= ^start_dt and t.inserted_at <= ^end_dt,
         group_by: [t.category, t.type],
         select: %{
           name: t.category,
@@ -73,11 +76,15 @@ defmodule FinBotElixir.Financial do
     }
   end
 
-  # Lista os detalhes de uma categoria específica
-  def list_by_category(user_id, category_name) do
+  # Lista os detalhes de uma categoria específica para um mês e ano
+  def list_by_category(user_id, category_name, month, year) do
+    {start_dt, end_dt} = month_range(month, year)
+
     query =
       from t in Transaction,
-        where: t.user_id == ^user_id and t.category == ^category_name,
+        where:
+          t.user_id == ^user_id and t.category == ^category_name and
+            t.inserted_at >= ^start_dt and t.inserted_at <= ^end_dt,
         order_by: [desc: t.inserted_at]
 
     Repo.all(query)
@@ -210,5 +217,12 @@ defmodule FinBotElixir.Financial do
   """
   def change_transaction(%Transaction{} = transaction, attrs \\ %{}) do
     Transaction.changeset(transaction, attrs)
+  end
+
+  defp month_range(month, year) do
+    days_in_month = Calendar.ISO.days_in_month(year, month)
+    start_dt = NaiveDateTime.new!(year, month, 1, 0, 0, 0)
+    end_dt = NaiveDateTime.new!(year, month, days_in_month, 23, 59, 59, {999_999, 6})
+    {start_dt, end_dt}
   end
 end
