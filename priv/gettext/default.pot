@@ -177,6 +177,71 @@ msgstr ""
 msgid "Utilities"
 msgstr ""
 
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Filter by period"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "January"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "February"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "March"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "April"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "May"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "June"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "July"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "August"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "September"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "October"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "November"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "December"
+msgstr ""
+
 #: lib/fin_bot_elixir_web/live/dash_live.html.heex:213
 #, elixir-autogen, elixir-format
 msgid "Amount"

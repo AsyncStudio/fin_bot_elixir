@@ -1,4 +1,31 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
+  <%!-- Date Filter --%>
+  <div class="border-b border-base-300 bg-base-100 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-6 py-4">
+      <form id="date-filter-form" phx-change="filter_date" class="flex items-center gap-3 flex-wrap">
+        <span class="text-sm font-medium text-base-content/60">{gettext("Filter by period")}:</span>
+        <select
+          id="filter-month"
+          name="month"
+          class="rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        >
+          <%= for {label, value} <- FinBotElixirWeb.DashLive.month_options() do %>
+            <option value={value} selected={value == @filter_month}>{label}</option>
+          <% end %>
+        </select>
+        <input
+          id="filter-year"
+          name="year"
+          type="number"
+          value={@filter_year}
+          min="1900"
+          max="2100"
+          class="w-28 rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </form>
+    </div>
+  </div>
+
   <%= if @live_action==:index do %>
     <%!-- Header --%>
       <header
