@@ -96,6 +96,18 @@ defmodule FinBotElixir.Processor do
     end
   end
 
+  defp handle_classified_message(%{message_type: :finance_tip} = context, user) do
+    context
+      |> Client.process_financial_tip_request()
+      |> Interactions.handle_message_context(user, nil)
+  end
+
+  defp handle_classified_message(%{message_type: :data_query} = context, user) do
+    # TODO: Handle Data query AI
+    Interactions.handle_message_context(context, user, nil)
+    :ok
+  end
+
   defp handle_classified_message(context, user) do
     Interactions.handle_message_context(context, user, nil)
     :ok

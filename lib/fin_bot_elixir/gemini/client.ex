@@ -54,6 +54,13 @@ defmodule FinBotElixir.Gemini.Client do
     end
   end
 
+  def process_financial_tip_request(context) do
+    prompt = build_financial_tip_prompt(context.original_text)
+    {:ok, response} = Gemini.generate(prompt)
+
+    context |> Map.put(:ai_response, parse_text_response(response) )
+  end
+
   defp parse_message_type("transaction"), do: :transaction
   defp parse_message_type("data_query"), do: :data_query
   defp parse_message_type("finance_tip"), do: :finance_tip
@@ -90,6 +97,25 @@ defmodule FinBotElixir.Gemini.Client do
 
     Return ONLY valid JSON.
     """
+  end
+
+  defp build_financial_tip_prompt(query) do
+    """
+    Provide a helpful, practical personal finance tip or answer to the following question/request:
+    "#{query}"
+
+    Return the response as plain text in the same language as the query.
+    """
+  end
+
+  def parse_text_response(body) do
+    text_response =
+      body.candidates
+      |> List.first()
+      |> get_in([Access.key!(:content), Access.key!(:parts)])
+      |> List.first()
+
+    text_response.text
   end
 
   defp parse_response(body) do
