@@ -298,3 +298,303 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Transaction updated successfully."
 msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "FinBot"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Start Chatting"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Stop tracking your money. Start talking to it."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "The first finance bot that actually answers you. No tedious forms, no rigid categories. Just chat via WhatsApp and get instant insights with AI."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Start Chatting Now"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No account needed"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Active now"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "How much did I spend on coffee in Florianopolis this month?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Coffee Spending"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "This Month"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "You are spending about 23% more than usual. Consider checking your daily coffee stops!"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Type a message..."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ask Anything About Your Finances"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Questions that other finance apps can't answer, FinBot answers instantly."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ask anything about your finances..."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Am I spending more on deliveries than last month?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Can I afford that weekend trip?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "What's my biggest expense category?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "How much have I saved this month?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Designed for Modern Finance"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Everything you need to understand your money, at your fingertips."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Frictionless Input"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Voice notes, photos of receipts, or simple text. The bot understands it all."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Shadow Onboarding"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Start recording in seconds. Claim your full dashboard whenever you're ready."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Privacy First"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your financial data, encrypted and protected with enterprise-grade security."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Your Dashboard, Reimagined"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Clean, minimal, and packed with insights."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Category Limits"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Coffee"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Food"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Utilities"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Rent"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Activity Feed"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Coffee at Brew Haven"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Today, 2:45 PM"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Salary Deposit"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Today, 12:30 PM"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Dinner at Pasta Place"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Yesterday, 6:15 PM"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Freelance Payment"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Yesterday, 9:00 AM"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Ready to chat with your finances?"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "No account needed. Start asking questions about your finances right now."
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Product"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Features"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Pricing"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Company"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "About"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Blog"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Contact"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Legal"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Privacy"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Terms"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Follow"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Twitter"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "LinkedIn"
+msgstr ""
+
+#: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "(c) 2026 FinBot. All rights reserved."
+msgstr ""

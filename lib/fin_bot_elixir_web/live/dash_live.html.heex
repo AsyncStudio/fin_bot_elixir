@@ -212,7 +212,10 @@
                 </section>
 
                 <%!-- Transaction List --%>
-                  <div class="mx-auto max-w-4xl px-6 py-12 -mx-4 sm:-mx-6 lg:-mx-8">
+                <section
+                  class="border-b border-base-300 bg-gradient-to-b from-base-200/20 to-transparent -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+
+                  <div class="mx-auto max-w-4xl px-6 py-8">
                     <div class="mb-6 flex items-center justify-between">
                       <h2 class="text-2xl font-bold text-base-content">{gettext("Records")}</h2>
                       <button
@@ -320,8 +323,10 @@
                         </div>
                     <% end %>
                   </div>
+                </section>
 
-                  <%!-- Delete Confirmation Modal --%>
+
+                <%!-- Delete Confirmation Modal --%>
                   <%= if @confirm_delete_id do %>
                     <div
                       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
