@@ -172,6 +172,18 @@ defmodule FinBotElixir.Financial do
     |> Repo.insert()
   end
 
+  def create_transaction_for_ui(user_id, attrs \\ %{}) do
+    attrs = Map.put(attrs, "user_id", user_id)
+
+    %Transaction{}
+    |> Transaction.ui_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def change_transaction_for_ui(%Transaction{} = transaction, attrs \\ %{}) do
+    Transaction.ui_changeset(transaction, attrs)
+  end
+
   @doc """
   Updates a transaction.
 

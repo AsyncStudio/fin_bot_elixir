@@ -300,3 +300,18 @@ msgstr "Transação excluída com sucesso."
 #, elixir-autogen, elixir-format
 msgid "Transaction updated successfully."
 msgstr "Transação atualizada com sucesso."
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "Transaction created successfully."
+msgstr "Transação criada com sucesso."
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add Transaction"
+msgstr "Adicionar Transação"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Add"
+msgstr "Adicionar"
