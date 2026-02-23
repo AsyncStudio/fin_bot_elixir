@@ -284,7 +284,7 @@ msgstr ""
 #: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "How much did I spend on coffee in Florianopolis this month?"
-msgstr ""
+msgstr "How much did I spend on coffee in Irvine this month?"
 
 #: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
