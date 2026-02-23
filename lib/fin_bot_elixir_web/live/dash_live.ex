@@ -75,7 +75,6 @@ defmodule FinBotElixirWeb.DashLive do
       editing_id: nil,
       edit_form: nil,
       confirm_delete_id: nil,
-      show_add_modal: false,
       add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
     )
   end
@@ -93,16 +92,6 @@ defmodule FinBotElixirWeb.DashLive do
   end
 
   @impl true
-  def handle_event("open_add_modal", _params, socket) do
-    add_form = to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
-    {:noreply, assign(socket, show_add_modal: true, add_form: add_form)}
-  end
-
-  @impl true
-  def handle_event("cancel_add", _params, socket) do
-    {:noreply, assign(socket, show_add_modal: false)}
-  end
-
   @impl true
   def handle_event("add_transaction", %{"transaction" => params}, socket) do
     params =
@@ -129,7 +118,6 @@ defmodule FinBotElixirWeb.DashLive do
            transactions: transactions,
            category_total: category_total,
            transaction_count: length(transactions),
-           show_add_modal: false,
            add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
          )
          |> put_flash(:info, gettext("Transaction created successfully."))}
@@ -174,13 +162,8 @@ defmodule FinBotElixirWeb.DashLive do
   end
 
   @impl true
-  def handle_event("confirm_delete", %{"id" => id}, socket) do
+  def handle_event("select_delete", %{"id" => id}, socket) do
     {:noreply, assign(socket, confirm_delete_id: id)}
-  end
-
-  @impl true
-  def handle_event("cancel_delete", _params, socket) do
-    {:noreply, assign(socket, confirm_delete_id: nil)}
   end
 
   @impl true
