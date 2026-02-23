@@ -75,13 +75,13 @@ defmodule FinBotElixirWeb.DashLive do
       transaction_count: length(transactions),
       month_label: month_label,
       all_categories: all_categories,
+      transactions: transactions,
       editing_id: nil,
       edit_form: nil,
       confirm_delete_id: nil,
       show_add_modal: false,
       add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
     )
-    |> stream(:transactions, transactions, reset: true)
   end
 
   @impl true
@@ -121,8 +121,8 @@ defmodule FinBotElixirWeb.DashLive do
 
         {:noreply,
          socket
-         |> stream(:transactions, [transaction])
          |> assign(
+           transactions: [transaction | socket.assigns.transactions],
            category_total: new_total,
            transaction_count: socket.assigns.transaction_count + 1,
            show_add_modal: false,
@@ -144,10 +144,16 @@ defmodule FinBotElixirWeb.DashLive do
       amount_diff = Decimal.sub(updated_transaction.amount, transaction.amount)
       new_total = Decimal.add(socket.assigns.category_total, amount_diff)
 
+      # Replace the transaction in the list
+      updated_transactions =
+        Enum.map(socket.assigns.transactions, fn t ->
+          if t.id == updated_transaction.id, do: updated_transaction, else: t
+        end)
+
       {:noreply,
        socket
-       |> stream(:transactions, [updated_transaction])
        |> assign(
+         transactions: updated_transactions,
          category_total: new_total,
          editing_id: nil,
          edit_form: nil
@@ -179,11 +185,12 @@ defmodule FinBotElixirWeb.DashLive do
     case Financial.delete_transaction(transaction) do
       {:ok, _transaction} ->
         new_total = Decimal.sub(socket.assigns.category_total, transaction.amount)
+        updated_transactions = Enum.reject(socket.assigns.transactions, &(&1.id == transaction.id))
 
         {:noreply,
          socket
-         |> stream_delete(:transactions, transaction)
          |> assign(
+           transactions: updated_transactions,
            category_total: new_total,
            transaction_count: socket.assigns.transaction_count - 1,
            confirm_delete_id: nil

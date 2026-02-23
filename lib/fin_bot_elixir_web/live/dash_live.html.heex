@@ -236,9 +236,9 @@
                         <p class="text-base-content/60">{gettext("No records found.")}</p>
                       </div>
                     <% else %>
-                      <div class="space-y-2" id="transactions-list" phx-update="stream">
-                          <%= for {id, t} <- @streams.transactions do %>
-                            <div id={id} class="rounded-lg border border-base-300 bg-base-200/50 transition-colors hover:bg-base-200">
+                      <div class="space-y-2" id="transactions-list">
+                          <%= for t <- @transactions do %>
+                            <div id={"transaction-#{t.id}"} class="rounded-lg border border-base-300 bg-base-200/50 transition-colors hover:bg-base-200">
                               <%= if t.id == @editing_id do %>
                                 <%!-- Edit mode --%>
                                 <.form for={@edit_form} id={"edit-form-#{t.id}"} phx-submit="save_transaction" class="p-4">
@@ -303,6 +303,7 @@
                                   </p>
                                   <div class="flex items-center gap-1 shrink-0">
                                     <button
+                                      type="button"
                                       phx-click="edit_transaction"
                                       phx-value-id={t.id}
                                       title={gettext("Edit")}
@@ -311,6 +312,7 @@
                                       <.icon name="hero-pencil-square" class="h-4 w-4" />
                                     </button>
                                     <button
+                                      type="button"
                                       phx-click="confirm_delete"
                                       phx-value-id={t.id}
                                       title={gettext("Delete")}
