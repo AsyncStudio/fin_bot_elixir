@@ -26,6 +26,7 @@ defmodule FinBotElixirWeb.Router do
     get "/", PageController, :home
     get "/auth/:provider", AuthController, :request
     get "/auth/:provider/callback", AuthController, :callback
+    get "/logout", AuthController, :logout
   end
 
   # Rotas Protegidas (Dashboard do FinBot)

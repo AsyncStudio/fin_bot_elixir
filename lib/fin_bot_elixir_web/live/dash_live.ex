@@ -223,6 +223,6 @@ defmodule FinBotElixirWeb.DashLive do
   def categories_for_type(all_categories, type) do
     all_categories
     |> Enum.filter(&(&1.type == type))
-    |> Enum.map(&{&1.label, &1.name})
+    |> Enum.map(&{category_label(&1.name), &1.name})
   end
 end

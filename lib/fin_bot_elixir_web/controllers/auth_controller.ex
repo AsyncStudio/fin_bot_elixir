@@ -62,6 +62,12 @@ defmodule FinBotElixirWeb.AuthController do
     end
   end
 
+  def logout(conn, _params) do
+    conn
+    |> configure_session(drop: true)
+    |> redirect(to: ~p"/")
+  end
+
   defp google_config do
     base_config = Application.fetch_env!(:fin_bot_elixir, :google_auth)
     Keyword.put(base_config, :redirect_uri, url(~p"/auth/google/callback"))

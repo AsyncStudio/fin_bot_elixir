@@ -69,7 +69,7 @@ defmodule FinBotElixir.Processor do
         Map.merge(extracted_data, %{
           "raw_input" => content,
           "user_id" => user.id,
-          "category" => extracted_data["category"] || "Outros"
+          "category" => extracted_data["category"] || Transaction.category_values() |> List.last(),
         })
 
       Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}", %{attrs: attrs})

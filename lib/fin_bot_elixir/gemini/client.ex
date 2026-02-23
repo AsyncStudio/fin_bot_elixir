@@ -34,7 +34,7 @@ defmodule FinBotElixir.Gemini.Client do
           {:error, :not_a_transaction}
 
         true ->
-          Logger.info("Entrada analisada como transação válida: #{text}")
+          Logger.info("Entrada analisada como transação válida: #{text}\nPrompt usado: #{prompt}\nResposta da IA: #{inspect(data)}")
           {:ok, data}
       end
     end
@@ -44,8 +44,7 @@ defmodule FinBotElixir.Gemini.Client do
     categories = Transaction.category_values() |> Enum.join("|")
 
     """
-    Analise: "#{text}"
-    Extraia em JSON:
+    Analise: "#{text}". Faça uma inferência para extrair os seguintes dados em JSON:
     {
       "amount": positive number,
       "description": string,
@@ -54,7 +53,9 @@ defmodule FinBotElixir.Gemini.Client do
       "is_transaction": boolean
     }
     Se dúvida no type, use expense.
-    Se dúvida na categoria, use "other". Use as categorias exatamente como fornecidas.
+    Nunca deixe a categoria em branco. Se dúvida na categoria, use "other". Use as categorias exatamente como fornecidas.
+    Análise o contexto da mensagem para determinar a categoria. Exemplo, se a mensagem for "gastei 50 com Uber", a categoria deve ser "transport". Se for "recebi 2000 de salário", a categoria deve ser "salary".
+    Para `description`, dê um nome curto baseado no conteúdo da mensagem, como "Uber" ou "Salário". Se não conseguir extrair uma descrição, use o valor da categoria como descrição.
     Se a mensagem não contém uma transação válida (sem valor, descrição vaga, ou claramente não é uma transação), defina "is_transaction" como false.
     Retorne APENAS o JSON.
     """
