@@ -1,11 +1,12 @@
 import Config
+import Dotenvy
 
 # Configure your database
 config :fin_bot_elixir, FinBotElixir.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "fin_bot_elixir_dev",
+  username: env!("DATABASE_USERNAME", :string),
+  password: env!("DATABASE_PASSWORD", :string),
+  hostname: env!("DATABASE_HOST", :string),
+  database: env!("DATABASE_NAME", :string),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

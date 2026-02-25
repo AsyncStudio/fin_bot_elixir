@@ -11,9 +11,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       PGPASSWORD: $$DATABASE_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "psql -U $$DATABASE_USER -d $$DATABASE_NAME -c '\\q' || exit 1" ]
       interval: 5s
       timeout: 10s
       retries: 10
       start_period: 10s
+
+volumes:
+  postgres_data:
