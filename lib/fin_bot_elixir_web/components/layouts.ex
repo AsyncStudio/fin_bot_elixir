@@ -49,13 +49,6 @@ defmodule FinBotElixirWeb.Layouts do
             >
               {gettext("Logout")}
             </.link>
-          <% else %>
-            <.link
-              navigate={~p"/auth/google"}
-              class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-content hover:bg-primary/90 transition-colors"
-            >
-              {gettext("Login")}
-            </.link>
           <% end %>
         </div>
       </div>

@@ -1,15 +1,4 @@
 import Config
-import Dotenvy
-
-# Configure your database
-config :fin_bot_elixir, FinBotElixir.Repo,
-  username: env!("DATABASE_USERNAME", :string),
-  password: env!("DATABASE_PASSWORD", :string),
-  hostname: env!("DATABASE_HOST", :string),
-  database: env!("DATABASE_NAME", :string),
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

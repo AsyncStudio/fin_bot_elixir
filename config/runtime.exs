@@ -54,24 +54,24 @@ config :fin_bot_elixir, :whatsapp,
 
 # endregion
 
+
+maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
+# Configure your database
+config :fin_bot_elixir, FinBotElixir.Repo,
+  username: env!("DATABASE_USER", :string),
+  password: env!("DATABASE_PASSWORD", :string),
+  hostname: env!("DATABASE_HOST", :string),
+  database: env!("DATABASE_NAME", :string),
+  pool_size: String.to_integer(env!("POOL_SIZE", :string) || "10"),
+
+  # PROD CONFIGS
+  ssl: config_env() == :prod,
+  stacktrace: config_env() == :prod,
+  show_sensitive_data_on_connection_error: config_env() == :prod,
+  socket_options: maybe_ipv6
+
 if config_env() == :prod do
-  database_url =
-    env!("DATABASE_URL", :string) ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
-
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
-
-  config :fin_bot_elixir, FinBotElixir.Repo,
-    ssl: true,
-    url: database_url,
-    pool_size: String.to_integer(env!("POOL_SIZE", :string) || "10"),
-    # For machines with several cores, consider starting multiple pools of `pool_size`
-    # pool_count: 4,
-    socket_options: maybe_ipv6
-
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want

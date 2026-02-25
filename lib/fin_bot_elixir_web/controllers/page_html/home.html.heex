@@ -3,16 +3,13 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
       <.logo />
       <div class="flex flex-row gap-2">
-        <.link href={FinBotWeb.Helpers.WhatsApp.share_link("15551498199", gettext("I want to use FinBot"))} class="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all transform hover:scale-105 flex items-center gap-2 w-fit">
+        <.link href={FinBotWeb.Helpers.WhatsApp.share_link("15551498199", gettext("I want to use FinBot"))}>
           <button class="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
             {gettext("Start Chatting")}
           </button>
         </.link>
-        <.link
-          navigate={~p"/auth/google"}
-          class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-content hover:bg-primary/90 transition-colors"
-        >
-          <button class="px-2 py-1 justify-center items-center rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+        <.link navigate={~p"/auth/google"}>
+          <button class="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
             {gettext("Login")}
           </button>
         </.link>
@@ -543,24 +540,26 @@
       <p class="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
         {gettext("No account needed. Start asking questions about your finances right now.")}
       </p>
-      <button class="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto">
-        {gettext("Start Chatting Now")}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-chevron-right w-5 h-5"
-          aria-hidden="true"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </button>
+      <.link href={FinBotWeb.Helpers.WhatsApp.share_link("15551498199", gettext("I want to use FinBot"))}>
+        <button class="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-all transform hover:scale-105 flex items-center gap-2 mx-auto">
+          {gettext("Start Chatting Now")}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-chevron-right w-5 h-5"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </.link>
     </section>
   </main>
 
