@@ -51,6 +51,8 @@ config :fin_bot_elixir, :whatsapp,
   token: env!("WHATSAPP_ACCESS_TOKEN", :string),
   phone_id: env!("WHATSAPP_PHONE_NUMBER_ID", :string)
 
+config :fin_bot_elixir, :vanna,
+  base_url: env!("VANNA_SERVICE_HOST", :string)
 
 # endregion
 
