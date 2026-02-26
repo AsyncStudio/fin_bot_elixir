@@ -31,6 +31,10 @@ defmodule FinBotElixir.Financial.Transaction do
     # field :user_id, :binary_id
     belongs_to :user, FinBotElixir.Accounts.User
 
+    many_to_many :tags, FinBotElixir.Financial.Tag,
+      join_through: "transaction_tags",
+      on_replace: :delete
+
     timestamps(type: :utc_datetime)
   end
 

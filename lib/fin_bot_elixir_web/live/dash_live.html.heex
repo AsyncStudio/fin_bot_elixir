@@ -236,6 +236,12 @@
                         <p class="text-base-content/60">{gettext("No records found.")}</p>
                       </div>
                     <% else %>
+                      <%!-- Shared tag autocomplete datalist --%>
+                      <datalist id="tag-suggestions">
+                        <%= for name <- @all_tags do %>
+                          <option value={name} />
+                        <% end %>
+                      </datalist>
                       <div class="space-y-2" id="transactions-list">
                           <%= for t <- @transactions do %>
                             <div id={"transaction-#{t.id}"} class="rounded-lg border border-base-300 bg-base-200/50 transition-colors hover:bg-base-200">
@@ -296,6 +302,40 @@
                                     <p class="text-sm text-base-content/60">
                                       {Calendar.strftime(t.inserted_at, "%b %d")}
                                     </p>
+                                    <%!-- Tags badges --%>
+                                    <div class="mt-2 flex flex-wrap items-center gap-1">
+                                      <%= for tag <- t.tags do %>
+                                        <span class="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                          {tag.name}
+                                          <button
+                                            type="button"
+                                            phx-click="remove_tag"
+                                            phx-value-transaction_id={t.id}
+                                            phx-value-tag_name={tag.name}
+                                            class="ml-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                                            title={gettext("Remove tag")}
+                                          >
+                                            <.icon name="hero-x-mark" class="h-3 w-3" />
+                                          </button>
+                                        </span>
+                                      <% end %>
+                                      <%!-- Add tag form --%>
+                                      <form
+                                        id={"add-tag-form-#{t.id}"}
+                                        phx-submit="add_tag"
+                                        class="inline-flex items-center gap-1"
+                                      >
+                                        <input type="hidden" name="transaction_id" value={t.id} />
+                                        <input
+                                          type="text"
+                                          name="tag_name"
+                                          list="tag-suggestions"
+                                          placeholder={gettext("Add tag…")}
+                                          autocomplete="off"
+                                          class="rounded-full border border-dashed border-base-300 bg-transparent px-2 py-0.5 text-xs text-base-content/60 placeholder:text-base-content/40 focus:border-primary focus:outline-none focus:text-base-content w-24"
+                                        />
+                                      </form>
+                                    </div>
                                   </div>
                                   <p class={["text-lg font-bold mr-3 shrink-0", if(t.type == "expense", do: "text-error", else: "text-success")]}>
                                     {if t.type == "expense", do: "-", else: "+"}R$

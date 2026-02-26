@@ -37,6 +37,12 @@ topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
+// Reset a form element when requested by the server (used by tag add forms)
+window.addEventListener("phx:reset_form", (e) => {
+  const form = document.getElementById(e.detail.id)
+  if (form) form.reset()
+})
+
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 
