@@ -482,20 +482,18 @@ defmodule FinBotElixirWeb.DashLive do
   end
 
   @doc """
-  Returns the limit usage percentage (0-100) for a category card.
+  Returns the limit usage percentage for a category card.
   Returns nil if no monthly_limit is set.
+  The percentage can exceed 100 to indicate overspending.
   """
   def limit_percentage(%{monthly_limit: nil}), do: nil
   def limit_percentage(%{monthly_limit: limit, total: total}) do
     if Decimal.compare(limit, 0) == :gt do
-      pct =
-        total
-        |> Decimal.div(limit)
-        |> Decimal.mult(100)
-        |> Decimal.round(0)
-        |> Decimal.to_integer()
-
-      min(pct, 100)
+      total
+      |> Decimal.div(limit)
+      |> Decimal.mult(100)
+      |> Decimal.round(0)
+      |> Decimal.to_integer()
     else
       nil
     end
