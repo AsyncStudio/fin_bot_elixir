@@ -13,6 +13,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+    <!-- Load the Vanna web component -->
+    <script type="module" src="https://img.vanna.ai/vanna-components.js"></script>
+    <style>
+        vanna-chat {
+            width: 100%;
+            height: 600px;
+            display: block;
+        }
+    </style>
     
     <script>
       document.documentElement.setAttribute("data-theme", "dark");
