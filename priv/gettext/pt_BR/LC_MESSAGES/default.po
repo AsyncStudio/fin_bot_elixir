@@ -327,6 +327,61 @@ msgstr "Adicionar Transação"
 msgid "Add"
 msgstr "Adicionar"
 
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit Category"
+msgstr "Editar Categoria"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr "Nome"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Monthly Limit (optional)"
+msgstr "Limite Mensal (opcional)"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Delete Category"
+msgstr "Excluir Categoria"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this category? This action cannot be undone."
+msgstr "Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita."
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "Category updated successfully."
+msgstr "Categoria atualizada com sucesso."
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "Category deleted successfully."
+msgstr "Categoria excluída com sucesso."
+
+#: lib/fin_bot_elixir_web/live/dash_live.ex
+#, elixir-autogen, elixir-format
+msgid "Failed to delete category."
+msgstr "Falha ao excluir categoria."
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Edit category"
+msgstr "Editar categoria"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Delete category"
+msgstr "Excluir categoria"
+
+#: lib/fin_bot_elixir_web/live/dash_live.html.heex
+#, elixir-autogen, elixir-format
+msgid "Limit"
+msgstr "Limite"
+
 #: lib/fin_bot_elixir_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "FinBot"

@@ -11,6 +11,8 @@ defmodule FinBotElixir.Accounts.User do
     field :email, :string
     field :google_id, :string
 
+    has_many :categories, FinBotElixir.Financial.Category
+
     timestamps(type: :utc_datetime)
   end
 
