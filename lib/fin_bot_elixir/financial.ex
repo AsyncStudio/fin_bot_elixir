@@ -8,6 +8,77 @@ defmodule FinBotElixir.Financial do
 
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Financial.Tag
+  alias FinBotElixir.Financial.Category
+
+  @default_categories [
+    %{name: "food", label: "Food & Dining", type: "expense"},
+    %{name: "transport", label: "Transportation", type: "expense"},
+    %{name: "housing", label: "Housing", type: "expense"},
+    %{name: "health", label: "Health", type: "expense"},
+    %{name: "education", label: "Education", type: "expense"},
+    %{name: "entertainment", label: "Entertainment", type: "expense"},
+    %{name: "shopping", label: "Shopping", type: "expense"},
+    %{name: "travel", label: "Travel", type: "expense"},
+    %{name: "utilities", label: "Utilities", type: "expense"},
+    %{name: "subscriptions", label: "Subscriptions", type: "expense"},
+    %{name: "salary", label: "Salary", type: "income"},
+    %{name: "freelance", label: "Freelance", type: "income"},
+    %{name: "investments", label: "Investments", type: "income"},
+    %{name: "other", label: "Other", type: "expense"}
+  ]
+
+  @doc """
+  Creates all default categories for a new user.
+  """
+  def create_default_categories(user_id) do
+    Enum.each(@default_categories, fn cat ->
+      %Category{}
+      |> Category.changeset(Map.put(cat, :user_id, user_id))
+      |> Repo.insert(on_conflict: :nothing)
+    end)
+  end
+
+  @doc """
+  Returns the list of categories for a user.
+  """
+  def list_categories_for_user(user_id) do
+    from(c in Category,
+      where: c.user_id == ^user_id,
+      order_by: [asc: c.type, asc: c.name]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single category belonging to the given user.
+  Raises `Ecto.NoResultsError` if not found.
+  """
+  def get_category_for_user!(id, user_id) do
+    Repo.get_by!(Category, id: id, user_id: user_id)
+  end
+
+  @doc """
+  Updates a category's label and/or monthly_limit.
+  """
+  def update_category(%Category{} = category, attrs) do
+    category
+    |> Category.update_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking category changes.
+  """
+  def change_category(%Category{} = category, attrs \\ %{}) do
+    Category.update_changeset(category, attrs)
+  end
+
+  @doc """
+  Deletes a category.
+  """
+  def delete_category(%Category{} = category) do
+    Repo.delete(category)
+  end
 
   # Agrupa gastos por categoria para a tela inicial
   def list_category_usage(user_id) do

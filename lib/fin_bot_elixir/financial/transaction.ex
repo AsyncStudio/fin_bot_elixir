@@ -43,7 +43,6 @@ defmodule FinBotElixir.Financial.Transaction do
     transaction
     |> cast(attrs, [:amount, :description, :category, :type, :raw_input, :user_id])
     |> validate_required([:amount, :description, :category, :type, :raw_input])
-    |> validate_inclusion(:category, category_values())
   end
 
   @doc false
@@ -57,7 +56,6 @@ defmodule FinBotElixir.Financial.Transaction do
         _ -> [amount: "must be greater than 0"]
       end
     end)
-    |> validate_inclusion(:category, category_values())
   end
 
   def categories, do: @categories

@@ -27,10 +27,13 @@ defmodule FinBotElixirWeb.DashLive do
     month = socket.assigns.filter_month
     year = socket.assigns.filter_year
     summary = Financial.dashboard_summary(socket.assigns.user_id, month, year)
-    categories = Transaction.categories()
+    user_categories = Financial.list_categories_for_user(socket.assigns.user_id)
 
-    expense_categories = build_category_cards(categories, summary.expense_categories, "expense")
-    income_categories = build_category_cards(categories, summary.income_categories, "income")
+    expense_categories =
+      build_category_cards(user_categories, summary.expense_categories, "expense")
+
+    income_categories =
+      build_category_cards(user_categories, summary.income_categories, "income")
 
     month_label = month_year_label(month, year)
 
@@ -44,7 +47,10 @@ defmodule FinBotElixirWeb.DashLive do
       net_balance: summary.net_balance,
       confirm_delete_id: nil,
       show_add_modal: false,
-      editing_id: nil
+      editing_id: nil,
+      editing_category_id: nil,
+      edit_category_form: nil,
+      confirm_delete_category_id: nil
     )
   end
 
@@ -53,13 +59,12 @@ defmodule FinBotElixirWeb.DashLive do
     month = socket.assigns.filter_month
     year = socket.assigns.filter_year
     transactions = Financial.list_by_category(socket.assigns.user_id, name, month, year)
-    all_categories = Transaction.categories()
+    user_categories = Financial.list_categories_for_user(socket.assigns.user_id)
 
-    category_type =
-      case all_categories |> Enum.find(&(&1.name == name)) do
-        nil -> "expense"
-        cat -> cat.type
-      end
+    found_category = Enum.find(user_categories, &(&1.name == name))
+
+    category_type = if found_category, do: found_category.type, else: "expense"
+    category_display_label = if found_category, do: found_category.label, else: name
 
     category_total =
       Enum.reduce(transactions, Decimal.new(0), &Decimal.add(&1.amount, &2))
@@ -68,13 +73,14 @@ defmodule FinBotElixirWeb.DashLive do
 
     socket
     |> assign(
-      page_title: "#{name}",
+      page_title: category_display_label,
       category_name: name,
+      category_display_label: category_display_label,
       category_type: category_type,
       category_total: category_total,
       transaction_count: length(transactions),
       month_label: month_label,
-      all_categories: all_categories,
+      all_categories: user_categories,
       transactions: transactions,
       all_tags: Financial.list_all_tag_names_for_user(socket.assigns.user_id),
       editing_id: nil,
@@ -279,6 +285,96 @@ defmodule FinBotElixirWeb.DashLive do
     {:noreply, socket |> assign(confirm_delete_id: nil, show_add_modal: false, editing_id: nil)}
   end
 
+  @impl true
+  def handle_event("open_edit_category", %{"id" => id}, socket) do
+    category = Financial.get_category_for_user!(id, socket.assigns.user_id)
+    form = to_form(Financial.change_category(category), as: :category)
+    {:noreply, assign(socket, editing_category_id: id, edit_category_form: form)}
+  end
+
+  @impl true
+  def handle_event("cancel_edit_category", _params, socket) do
+    {:noreply, assign(socket, editing_category_id: nil, edit_category_form: nil)}
+  end
+
+  @impl true
+  def handle_event("save_category", %{"category" => params}, socket) do
+    with editing_id when not is_nil(editing_id) <- socket.assigns.editing_category_id,
+         category <- Financial.get_category_for_user!(editing_id, socket.assigns.user_id),
+         {:ok, _updated} <- Financial.update_category(category, params) do
+      month = socket.assigns.filter_month
+      year = socket.assigns.filter_year
+      summary = Financial.dashboard_summary(socket.assigns.user_id, month, year)
+      user_categories = Financial.list_categories_for_user(socket.assigns.user_id)
+
+      expense_categories =
+        build_category_cards(user_categories, summary.expense_categories, "expense")
+
+      income_categories =
+        build_category_cards(user_categories, summary.income_categories, "income")
+
+      {:noreply,
+       socket
+       |> assign(
+         expense_categories: expense_categories,
+         income_categories: income_categories,
+         editing_category_id: nil,
+         edit_category_form: nil
+       )
+       |> put_flash(:info, gettext("Category updated successfully."))}
+    else
+      nil ->
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, edit_category_form: to_form(changeset, as: :category))}
+    end
+  end
+
+  @impl true
+  def handle_event("confirm_delete_category", %{"id" => id}, socket) do
+    {:noreply, assign(socket, confirm_delete_category_id: id)}
+  end
+
+  @impl true
+  def handle_event("cancel_delete_category", _params, socket) do
+    {:noreply, assign(socket, confirm_delete_category_id: nil)}
+  end
+
+  @impl true
+  def handle_event("delete_category", %{"id" => id}, socket) do
+    category = Financial.get_category_for_user!(id, socket.assigns.user_id)
+
+    case Financial.delete_category(category) do
+      {:ok, _} ->
+        month = socket.assigns.filter_month
+        year = socket.assigns.filter_year
+        summary = Financial.dashboard_summary(socket.assigns.user_id, month, year)
+        user_categories = Financial.list_categories_for_user(socket.assigns.user_id)
+
+        expense_categories =
+          build_category_cards(user_categories, summary.expense_categories, "expense")
+
+        income_categories =
+          build_category_cards(user_categories, summary.income_categories, "income")
+
+        {:noreply,
+         socket
+         |> assign(
+           expense_categories: expense_categories,
+           income_categories: income_categories,
+           confirm_delete_category_id: nil
+         )
+         |> put_flash(:info, gettext("Category deleted successfully."))}
+
+      {:error, _} ->
+        {:noreply,
+         socket
+         |> assign(confirm_delete_category_id: nil)
+         |> put_flash(:error, gettext("Failed to delete category."))}
+    end
+  end
+
   @doc """
   Formats a Decimal as a currency string (R$ 1.234,56).
   """
@@ -326,9 +422,11 @@ defmodule FinBotElixirWeb.DashLive do
       summary = Map.get(summary_map, category.name)
 
       %{
+        id: category.id,
         name: category.name,
         label: category.label,
         type: category.type,
+        monthly_limit: category.monthly_limit,
         total: if(summary, do: summary.total, else: Decimal.new(0)),
         count: if(summary, do: summary.count, else: 0)
       }
@@ -358,7 +456,7 @@ defmodule FinBotElixirWeb.DashLive do
   def categories_for_type(all_categories, type) do
     all_categories
     |> Enum.filter(&(&1.type == type))
-    |> Enum.map(&{category_label(&1.name), &1.name})
+    |> Enum.map(&{&1.label, &1.name})
   end
 
   def month_options do
@@ -381,5 +479,23 @@ defmodule FinBotElixirWeb.DashLive do
   defp month_year_label(month, year) do
     {month_name, _} = Enum.find(month_options(), fn {_, m} -> m == month end)
     "#{month_name} #{year}"
+  end
+
+  @doc """
+  Returns the limit usage percentage for a category card.
+  Returns nil if no monthly_limit is set.
+  The percentage can exceed 100 to indicate overspending.
+  """
+  def limit_percentage(%{monthly_limit: nil}), do: nil
+  def limit_percentage(%{monthly_limit: limit, total: total}) do
+    if Decimal.compare(limit, 0) == :gt do
+      total
+      |> Decimal.div(limit)
+      |> Decimal.mult(100)
+      |> Decimal.round(0)
+      |> Decimal.to_integer()
+    else
+      nil
+    end
   end
 end

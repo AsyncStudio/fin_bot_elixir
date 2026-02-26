@@ -1,6 +1,7 @@
 defmodule FinBotElixir.Accounts do
   alias FinBotElixir.Repo
   alias FinBotElixir.Accounts.User
+  alias FinBotElixir.Financial
 
   def find_or_create_by_whatsapp(whatsapp_number) do
     case Repo.get_by(User, whatsapp_number: whatsapp_number) do
@@ -18,9 +19,19 @@ defmodule FinBotElixir.Accounts do
   end
 
   def create_user(attrs) do
-    %User{}
-    |> User.changeset(attrs)
-    |> Repo.insert()
+    result =
+      %User{}
+      |> User.changeset(attrs)
+      |> Repo.insert()
+
+    case result do
+      {:ok, user} ->
+        Financial.create_default_categories(user.id)
+        {:ok, user}
+
+      error ->
+        error
+    end
   end
 
   def get_user(id), do: Repo.get(User, id)
