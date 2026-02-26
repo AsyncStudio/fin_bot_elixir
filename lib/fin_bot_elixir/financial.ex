@@ -164,6 +164,7 @@ defmodule FinBotElixir.Financial do
     %Transaction{}
     |> Transaction.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload_tags()
   end
 
   def create_transaction_for_user(user_id, attrs \\ %{}) do
@@ -172,6 +173,7 @@ defmodule FinBotElixir.Financial do
     %Transaction{}
     |> Transaction.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload_tags()
   end
 
   def create_transaction_for_ui(user_id, attrs \\ %{}) do
@@ -180,6 +182,7 @@ defmodule FinBotElixir.Financial do
     %Transaction{}
     |> Transaction.ui_changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload_tags()
   end
 
   def change_transaction_for_ui(%Transaction{} = transaction, attrs \\ %{}) do
@@ -202,6 +205,7 @@ defmodule FinBotElixir.Financial do
     transaction
     |> Transaction.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload_tags()
   end
 
   @doc """
@@ -295,4 +299,10 @@ defmodule FinBotElixir.Financial do
     end_dt = NaiveDateTime.new!(year, month, days_in_month, 23, 59, 59, {999_999, 6})
     {start_dt, end_dt}
   end
+
+  defp maybe_preload_tags({:ok, %Transaction{} = transaction}) do
+    {:ok, Repo.preload(transaction, :tags)}
+  end
+
+  defp maybe_preload_tags(result), do: result
 end
