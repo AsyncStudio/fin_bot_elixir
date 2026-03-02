@@ -599,5 +599,20 @@ msgstr ""
 msgid "(c) 2026 FinBot. All rights reserved."
 msgstr ""
 
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "This capability is under construction. Hold fast! 🔧"
+msgstr ""
+
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "This topic is unrelated. Please talk only about finances. 💰"
+msgstr ""
+
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "I was unable to generate advice at this time. Please try again."
+msgstr ""
+
 msgid "I want to use FinBot"
 msgstr ""

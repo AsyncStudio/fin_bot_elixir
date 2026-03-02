@@ -622,5 +622,20 @@ msgstr "LinkedIn"
 msgid "(c) 2024 FinBot. All rights reserved."
 msgstr "(c) 2024 FinBot. Todos os direitos reservados."
 
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "This capability is under construction. Hold fast! 🔧"
+msgstr "Essa funcionalidade está em construção. Aguente firme! 🔧"
+
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "This topic is unrelated. Please talk only about finances. 💰"
+msgstr "Este tema não está relacionado. Fale apenas sobre finanças. 💰"
+
+#: lib/fin_bot_elixir/gemini/interactions.ex
+#, elixir-autogen, elixir-format
+msgid "I was unable to generate advice at this time. Please try again."
+msgstr "Não consegui gerar uma orientação neste momento. Tente novamente."
+
 msgid "I want to use FinBot"
 msgstr "Quero usar FinBot"

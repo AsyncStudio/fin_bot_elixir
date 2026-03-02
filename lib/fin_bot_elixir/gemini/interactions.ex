@@ -3,9 +3,9 @@ defmodule FinBotElixir.Gemini.Interactions do
   alias FinBotElixir.Financial.Transaction
   alias FinBotElixir.Financial
 
-  @data_query_response "This capability is under construction. Hold fast! 🔧"
-  @unrelated_response "This topic is unrelated. Please talk only about finances. 💰"
-  @finance_tip_fallback "I was unable to generate advice at this time. Please try again."
+  @data_query_response_msgid "This capability is under construction. Hold fast! 🔧"
+  @unrelated_response_msgid "This topic is unrelated. Please talk only about finances. 💰"
+  @finance_tip_fallback_msgid "I was unable to generate advice at this time. Please try again."
 
   @expense_responses [
     "Anotado! Esse gasto vai pesar no seu orçamento esse mês. 😬",
@@ -27,6 +27,10 @@ defmodule FinBotElixir.Gemini.Interactions do
     "Ops, não consegui extrair uma transação dessa mensagem. Certifique-se de incluir um valor e uma descrição clara."
   ]
 
+  @error_responses [
+    "Houve um erro ao processar sua mensagem. Tente novamente mais tarde.",
+  ]
+
   # region: Context dispatcher
 
   @doc """
@@ -34,42 +38,43 @@ defmodule FinBotElixir.Gemini.Interactions do
   Receives the message context, the user, and optionally the saved transaction.
   """
   def handle_message_context(%{message_type: :transaction} = context, user, transaction) do
-    transaction = FinBotElixir.Repo.preload(transaction, :user)
-    count = Financial.count_user_transactions(transaction.user_id)
-
-    smart_process(transaction, count, context.ai_response)
-    |> Client.send_message(user.whatsapp_number)
+    response = context.ai_response || Enum.random(@expense_responses)
+    send_message(user, response)
   end
 
-  def handle_message_context(%{message_type: :data_query}, user, _transaction) do
-    Client.send_message(@data_query_response, user.whatsapp_number)
-  end
-
+  ## FINANCE TIP
   def handle_message_context(%{message_type: :finance_tip} = context, user, _transaction) do
-    response = context.ai_response || @finance_tip_fallback
-    Client.send_message(response, user.whatsapp_number)
+    response =
+      context.ai_response || Gettext.gettext(FinBotElixirWeb.Gettext, @finance_tip_fallback_msgid)
+
+    send_message(user, response)
   end
 
+  ## DATA QUERY
+  def handle_message_context(%{message_type: :data_query}, user, _transaction) do
+    response = Gettext.gettext(FinBotElixirWeb.Gettext, @data_query_response_msgid)
+    send_message(user, response)
+  end
+
+  ## UNRELATED
   def handle_message_context(%{message_type: :unrelated}, user, _transaction) do
-    Client.send_message(@unrelated_response, user.whatsapp_number)
+    response = Gettext.gettext(FinBotElixirWeb.Gettext, @unrelated_response_msgid)
+    send_message(user, response)
+  end
+
+  def handle_message_context(context, user, _transaction) when context.ai_response != "" do
+    send_message(user, context.ai_response)
+  end
+
+  # Default handler
+  def handle_message_context(_context, user, _transaction) do
+    response = Enum.random(@error_responses)
+    send_message(user, response)
   end
 
   # endregion
 
   # region: Msg Switch
-
-  def process_response(%Transaction{} = transaction) do
-    transaction = FinBotElixir.Repo.preload(transaction, :user)
-    count = Financial.count_user_transactions(transaction.user_id)
-
-    smart_process(transaction, count, nil)
-    |> Client.send_message(transaction.user.whatsapp_number)
-  end
-
-  def process_error(whatsapp_number) do
-    process_return_random(@failed_responses)
-    |> Client.send_message(whatsapp_number)
-  end
 
   defp smart_process(%Transaction{} = transaction, count, _ai_response) when count <= 1 do
     welcome_and_process(transaction.user, transaction.raw_input)
@@ -94,6 +99,12 @@ defmodule FinBotElixir.Gemini.Interactions do
   # endregion
 
   # region: Helpers
+
+  defp send_message(user, message) do
+    message
+      |> String.replace(~r/<linking_token>/, user.linking_token || "")
+      |> Client.send_message(user.whatsapp_number)
+  end
 
   defp welcome_and_process(user, _text) do
     """
