@@ -48,11 +48,14 @@ defmodule FinBotElixir.Processor do
     Logger.info("Iniciando processamento da mensagem do sender #{sender_id}: #{content}")
 
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
+    existing_tags = Financial.list_all_tag_names_for_user(user.id)
 
-    with {:ok, context} <- Client.classify_message(content) do
-      context
+    with {:ok, context} <- Client.classify_message(content, existing_tags) do
+      context 
         |> Map.put(:sender_id, sender_id)
+        |> Map.put(:existing_tags, existing_tags)
         |> handle_classified_message(user)
+      
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
@@ -76,6 +79,7 @@ defmodule FinBotElixir.Processor do
     Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}")
 
     with {:ok, transaction} <- Financial.create_transaction_for_user(user.id, attrs) do
+      apply_tags(transaction, transaction_data["tags"] || [], Map.get(context, :existing_tags, []))
       Logger.info("Transação salva no FinBot para o sender #{context.sender_id}")
       Interactions.handle_message_context(context, user, transaction)
       :ok
@@ -106,40 +110,28 @@ defmodule FinBotElixir.Processor do
     :ok
   end
 
-  # endregion
-  # region: Retry
+  # Applies AI-suggested tags to a transaction, normalizing each tag against
+  # already-existing user tags to avoid near-duplicate tags (e.g. "car" vs "cars").
+  defp apply_tags(_transaction, [], _existing_tags), do: :ok
 
-  defp retry(fun, retries_left, attempt \\ 1)
-
-  defp retry(_fun, 0, attempt) do
-    Logger.error("Processamento falhou após #{attempt - 1} tentativas, desistindo.")
+  defp apply_tags(transaction, tags, existing_tags) when is_list(tags) do
+    Enum.each(tags, fn raw_tag ->
+      tag_name = normalize_tag_name(raw_tag, existing_tags)
+      Financial.add_tag_to_transaction(transaction, tag_name)
+    end)
   end
 
-  defp retry(fun, retries_left, attempt) do
-    case fun.() do
-      :ok ->
-        :ok
+  # Returns the best-matching existing tag name when the similarity is high
+  # enough (Jaro distance >= 0.9), otherwise returns the normalized input tag.
+  defp normalize_tag_name(tag, existing_tags) do
+    normalized = tag |> String.downcase() |> String.trim()
 
-      {:error, :no_retry} ->
-        :ok
+    match =
+      Enum.find(existing_tags, fn existing ->
+        existing_lower = String.downcase(existing)
+        existing_lower == normalized or String.jaro_distance(existing_lower, normalized) >= 0.9
+      end)
 
-      {:error, reason} ->
-        Logger.warning(
-          "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
-        )
-
-        Process.sleep(@retry_delay_ms)
-        retry(fun, retries_left - 1, attempt + 1)
-    end
-  rescue
-    exception ->
-      Logger.warning(
-        "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
-      )
-
-      Process.sleep(@retry_delay_ms)
-      retry(fun, retries_left - 1, attempt + 1)
+    match || normalized
   end
-
-  # endregion
 end
