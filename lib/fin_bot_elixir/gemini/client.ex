@@ -3,7 +3,7 @@ defmodule FinBotElixir.Gemini.Client do
 
   @response_schema %{
     "type" => "object",
-    "required" => ["message_type"],
+    "required" => ["message_type", "ai_response"],
     "properties" => %{
       "message_type" => %{"type" => "string"},
       "transaction_data" => %{
