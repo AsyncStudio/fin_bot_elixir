@@ -76,7 +76,7 @@ defmodule FinBotElixir.Accounts do
   end
 
   def build_linking_url(user) do
-    [host: host] = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:url] || "http://localhost:4000"
+    host = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] || "http://localhost:4000"
     "#{host}/auth/google?token=#{user.linking_token}"
   end
 end

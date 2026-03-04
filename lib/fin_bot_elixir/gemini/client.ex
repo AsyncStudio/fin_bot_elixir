@@ -98,7 +98,7 @@ defmodule FinBotElixir.Gemini.Client do
 
   defp build_classification_prompt(text) do
     categories = Transaction.category_values() |> Enum.join("|")
-    [host: host] = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:url] || "http://localhost:4000"
+    host = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] || "http://localhost:4000"
 
     """
     You are FinBot, a personal finance assistant. You help users manage their finances by recording transactions,
