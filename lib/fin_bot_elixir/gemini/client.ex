@@ -59,7 +59,7 @@ defmodule FinBotElixir.Gemini.Client do
     )
 
     # Wait for processing (videos/large files)
-    {:ok, ready} = Files.wait_for_processing(file.name)
+    {:ok, ready} = Gemini.APIs.Files.wait_for_processing(file.name)
 
     # Estrutura para o Gemini receber o binário + texto
     content_parts = [
