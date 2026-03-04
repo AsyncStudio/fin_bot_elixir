@@ -24,8 +24,15 @@ defmodule FinBotElixirWeb.TransactionJSON do
       type: transaction.type,
       raw_input: transaction.raw_input,
       user_id: transaction.user_id,
+      tags: render_tags(transaction.tags),
       inserted_at: transaction.inserted_at,
       updated_at: transaction.updated_at
     }
   end
+
+  defp render_tags(tags) when is_list(tags) do
+    for tag <- tags, do: %{id: tag.id, name: tag.name}
+  end
+
+  defp render_tags(_), do: []
 end
