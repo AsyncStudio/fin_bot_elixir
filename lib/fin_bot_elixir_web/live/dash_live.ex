@@ -127,7 +127,8 @@ defmodule FinBotElixirWeb.DashLive do
            category_total: new_total,
            transaction_count: socket.assigns.transaction_count + 1,
            show_add_modal: false,
-           add_form: to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
+           add_form:
+             to_form(Financial.change_transaction_for_ui(%Transaction{}), as: :transaction)
          )
          |> put_flash(:info, gettext("Transaction created successfully."))}
 
@@ -186,7 +187,9 @@ defmodule FinBotElixirWeb.DashLive do
     case Financial.delete_transaction(transaction) do
       {:ok, _transaction} ->
         new_total = Decimal.sub(socket.assigns.category_total, transaction.amount)
-        updated_transactions = Enum.reject(socket.assigns.transactions, &(&1.id == transaction.id))
+
+        updated_transactions =
+          Enum.reject(socket.assigns.transactions, &(&1.id == transaction.id))
 
         {:noreply,
          socket

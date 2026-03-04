@@ -11,6 +11,11 @@ config :fin_bot_elixir,
   ecto_repos: [FinBotElixir.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :fin_bot_elixir, Oban,
+  repo: FinBotElixir.Repo,
+  plugins: [Oban.Plugins.Pruner],
+  queues: [default: 10]
+
 config :fin_bot_elixir, FinBotElixirWeb.Gettext,
   default_locale: "pt_BR",
   locales: ["pt_BR", "en"]

@@ -23,7 +23,10 @@ defmodule FinBotElixir.Processor do
   end
 
   defp process_message(%{from: sender_id, type: type} = params) when type in [:image, :audio] do
-    Logger.info("[MEDIA] Iniciando processamento da mensagem do sender #{sender_id}: #{inspect(params)}")
+    Logger.info(
+      "[MEDIA] Iniciando processamento da mensagem do sender #{sender_id}: #{inspect(params)}"
+    )
+
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
 
     # 1. Busca URL e baixa o binário
@@ -39,7 +42,10 @@ defmodule FinBotElixir.Processor do
       handle_classified_message(context, user)
     else
       {:error, reason} ->
-        Logger.error("[MEDIA] Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
+        Logger.error(
+          "[MEDIA] Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}"
+        )
+
         {:error, reason}
     end
   end
@@ -48,11 +54,13 @@ defmodule FinBotElixir.Processor do
     Logger.info("Iniciando processamento da mensagem do sender #{sender_id}: #{content}")
 
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
+    existing_tags = Financial.list_all_tag_names_for_user(user.id)
 
-    with {:ok, context} <- Client.classify_message(content) do
+    with {:ok, context} <- Client.classify_message(content, existing_tags) do
       context
-        |> Map.put(:sender_id, sender_id)
-        |> handle_classified_message(user)
+      |> Map.put(:sender_id, sender_id)
+      |> Map.put(:existing_tags, existing_tags)
+      |> handle_classified_message(user)
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
@@ -69,13 +77,18 @@ defmodule FinBotElixir.Processor do
       Map.merge(transaction_data, %{
         "raw_input" => context.original_text,
         "user_id" => user.id,
-        "category" =>
-          transaction_data["category"] || @default_category
+        "category" => transaction_data["category"] || @default_category
       })
 
     Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}")
 
     with {:ok, transaction} <- Financial.create_transaction_for_user(user.id, attrs) do
+      apply_tags(
+        transaction,
+        transaction_data["tags"] || [],
+        Map.get(context, :existing_tags, [])
+      )
+
       Logger.info("Transação salva no FinBot para o sender #{context.sender_id}")
       Interactions.handle_message_context(context, user, transaction)
       :ok
@@ -91,8 +104,8 @@ defmodule FinBotElixir.Processor do
 
   defp handle_classified_message(%{message_type: :finance_tip} = context, user) do
     context
-      |> Client.process_financial_tip_request()
-      |> Interactions.handle_message_context(user, nil)
+    |> Client.process_financial_tip_request()
+    |> Interactions.handle_message_context(user, nil)
   end
 
   defp handle_classified_message(%{message_type: :data_query} = context, user) do
@@ -104,6 +117,35 @@ defmodule FinBotElixir.Processor do
   defp handle_classified_message(context, user) do
     Interactions.handle_message_context(context, user, nil)
     :ok
+  end
+
+  # Applies AI-suggested tags to a transaction, normalizing each tag against
+  # already-existing user tags to avoid near-duplicate tags (e.g. "car" vs "cars").
+  defp apply_tags(_transaction, [], _existing_tags), do: :ok
+
+  defp apply_tags(transaction, tags, existing_tags) when is_list(tags) do
+    Logger.info(
+      "Aplicando tags sugeridas pela IA para a transação #{transaction.id}: #{inspect(tags)}"
+    )
+
+    Enum.each(tags, fn raw_tag ->
+      tag_name = normalize_tag_name(raw_tag, existing_tags)
+      Financial.add_tag_to_transaction(transaction, tag_name)
+    end)
+  end
+
+  # Returns the best-matching existing tag name when the similarity is high
+  # enough (Jaro distance >= 0.9), otherwise returns the normalized input tag.
+  defp normalize_tag_name(tag, existing_tags) do
+    normalized = tag |> String.downcase() |> String.trim()
+
+    match =
+      Enum.find(existing_tags, fn existing ->
+        existing_lower = String.downcase(existing)
+        existing_lower == normalized or String.jaro_distance(existing_lower, normalized) >= 0.9
+      end)
+
+    match || normalized
   end
 
   # endregion

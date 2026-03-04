@@ -19,6 +19,7 @@ defmodule FinBotElixirWeb.WhatsappController do
 
   def receive(conn, params) do
     Logger.info("Recebida nova mensagem do webhook: #{inspect(params)}")
+
     case extract_message(params) do
       nil ->
         Logger.warn("Webhook recebido com formato inesperado: #{inspect(params)}")
@@ -36,12 +37,19 @@ defmodule FinBotElixirWeb.WhatsappController do
         %{from: msg["from"], text: msg["text"]["body"], type: :text}
 
       "image" ->
-        %{from: msg["from"], media_id: msg["image"]["id"], caption: msg["image"]["caption"], url: msg["image"]["url"], type: :image}
+        %{
+          from: msg["from"],
+          media_id: msg["image"]["id"],
+          caption: msg["image"]["caption"],
+          url: msg["image"]["url"],
+          type: :image
+        }
 
       "audio" ->
         %{from: msg["from"], media_id: msg["audio"]["id"], type: :audio}
 
-      _ -> nil
+      _ ->
+        nil
     end
   end
 

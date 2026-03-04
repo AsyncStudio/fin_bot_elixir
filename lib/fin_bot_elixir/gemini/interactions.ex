@@ -28,7 +28,7 @@ defmodule FinBotElixir.Gemini.Interactions do
   ]
 
   @error_responses [
-    "Houve um erro ao processar sua mensagem. Tente novamente mais tarde.",
+    "Houve um erro ao processar sua mensagem. Tente novamente mais tarde."
   ]
 
   # region: Context dispatcher
@@ -62,7 +62,8 @@ defmodule FinBotElixir.Gemini.Interactions do
     send_message(user, response)
   end
 
-  def handle_message_context(context, user, _transaction) when is_binary(context.ai_response) and context.ai_response != "" do
+  def handle_message_context(context, user, _transaction)
+      when is_binary(context.ai_response) and context.ai_response != "" do
     send_message(user, context.ai_response)
   end
 
@@ -102,8 +103,8 @@ defmodule FinBotElixir.Gemini.Interactions do
 
   defp send_message(user, message) do
     message
-      |> String.replace(~r/<linking_token>/, user.linking_token || "")
-      |> Client.send_message(user.whatsapp_number)
+    |> String.replace(~r/<linking_token>/, user.linking_token || "")
+    |> Client.send_message(user.whatsapp_number)
   end
 
   defp welcome_and_process(user, _text) do

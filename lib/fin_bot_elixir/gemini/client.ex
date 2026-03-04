@@ -12,7 +12,11 @@ defmodule FinBotElixir.Gemini.Client do
           "amount" => %{"type" => "number"},
           "description" => %{"type" => "string"},
           "category" => %{"type" => "string"},
-          "type" => %{"type" => "string"}
+          "type" => %{"type" => "string"},
+          "tags" => %{
+            "type" => "array",
+            "items" => %{"type" => "string"}
+          }
         }
       },
       "ai_response" => %{"type" => "string"}
@@ -29,18 +33,21 @@ defmodule FinBotElixir.Gemini.Client do
   Classifies the user message and, in a single AI call, extracts all data needed
   to handle the response. Returns `{:ok, context}` where context is a map with:
     - `:message_type` — one of `:transaction`, `:data_query`, `:finance_tip`, `:unrelated`
-    - `:transaction_data` — map with transaction fields, or `nil`
+    - `:transaction_data` — map with transaction fields (including `tags`), or `nil`
     - `:ai_response` — AI-generated reply text (for transactions and finance tips), or `nil`
     - `:original_text` — the raw user input
-  """
-  def classify_message(user_text) do
-    prompt = build_classification_prompt(user_text)
 
-    with {:ok, response} <- Gemini.generate(prompt,
-      response_json_schema: @response_schema,
-      response_mime_type: @response_mime_type,
-      temperature: 0.3
-    ) do
+  Optionally accepts a list of existing tag names to guide the AI in reusing tags.
+  """
+  def classify_message(user_text, existing_tags \\ []) do
+    prompt = build_classification_prompt(user_text, existing_tags)
+
+    with {:ok, response} <-
+           Gemini.generate(prompt,
+             response_json_schema: @response_schema,
+             response_mime_type: @response_mime_type,
+             temperature: 0.3
+           ) do
       generate_output(response, user_text)
     else
       {:error, reason} ->
@@ -50,13 +57,15 @@ defmodule FinBotElixir.Gemini.Client do
   end
 
   def classify_multimodal(binary, mime_type, user_text) do
-    prompt_text = build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
+    prompt_text =
+      build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
 
     # Upload a file
-    {:ok, file} = Gemini.APIs.Files.upload_data(binary,
-      mime_type: "image/png",
-      display_name: "In-Memory Image"
-    )
+    {:ok, file} =
+      Gemini.APIs.Files.upload_data(binary,
+        mime_type: "image/png",
+        display_name: "In-Memory Image"
+      )
 
     # Wait for processing (videos/large files)
     {:ok, ready} = Gemini.APIs.Files.wait_for_processing(file.name)
@@ -67,11 +76,12 @@ defmodule FinBotElixir.Gemini.Client do
       %{file_uri: ready.uri, mime_type: ready.mime_type}
     ]
 
-    with {:ok, response} <- Gemini.generate(content_parts,
-      response_json_schema: @response_schema,
-      response_mime_type: @response_mime_type,
-      temperature: 0.3
-    ) do
+    with {:ok, response} <-
+           Gemini.generate(content_parts,
+             response_json_schema: @response_schema,
+             response_mime_type: @response_mime_type,
+             temperature: 0.3
+           ) do
       generate_output(response, user_text)
     else
       {:error, reason} ->
@@ -80,11 +90,26 @@ defmodule FinBotElixir.Gemini.Client do
     end
   end
 
+  @doc """
+  Parses a raw AI classification data map into the message context.
+  This is a pure function that can be used directly in tests.
+  """
+  def parse_classification_data(data, text) do
+    message_type = parse_message_type(data["message_type"])
+
+    %{
+      message_type: message_type,
+      transaction_data: data["transaction_data"],
+      ai_response: data["ai_response"],
+      original_text: text
+    }
+  end
+
   def process_financial_tip_request(context) do
     prompt = build_financial_tip_prompt(context.original_text)
     {:ok, response} = Gemini.generate(prompt)
 
-    context |> Map.put(:ai_response, parse_text_response(response) )
+    context |> Map.put(:ai_response, parse_text_response(response))
   end
 
   # region Internal
@@ -96,9 +121,27 @@ defmodule FinBotElixir.Gemini.Client do
   defp parse_message_type("small_talk"), do: :small_talk
   defp parse_message_type(_), do: :unrelated
 
-  defp build_classification_prompt(text) do
+  @doc """
+  Builds the AI classification prompt for the given user message and optional existing tags.
+  Made public for testability.
+  """
+  def build_classification_prompt(text, existing_tags \\ []) do
     categories = Transaction.category_values() |> Enum.join("|")
-    host = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] || "http://localhost:4000"
+
+    host =
+      Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] ||
+        "http://localhost:4000"
+
+    tags_hint =
+      case existing_tags do
+        [] ->
+          ""
+
+        tags ->
+          existing = Enum.join(tags, ", ")
+
+          "\nThe user already has these tags: [#{existing}]. Reuse an existing tag when the context is a close match.\n"
+      end
 
     """
     You are FinBot, a personal finance assistant. You help users manage their finances by recording transactions,
@@ -114,6 +157,22 @@ defmodule FinBotElixir.Gemini.Client do
     - "unrelated": anything not related to personal finance or not related to the FinBot app (you)
 
     Message: "#{text}"
+    #{tags_hint}
+    Category mapping (accept names in any language and map to the correct internal label):
+    - food / comida / alimentação / essen / nourriture / طعام → "food"
+    - transport / transporte / fahrt / transport / نقل → "transport"
+    - housing / moradia / wohnen / logement / سكن → "housing"
+    - health / saúde / gesundheit / santé / صحة → "health"
+    - education / educação / bildung / éducation / تعليم → "education"
+    - entertainment / entretenimento / unterhaltung / divertissement → "entertainment"
+    - shopping / compras / einkaufen / courses / تسوق → "shopping"
+    - travel / viagem / reise / voyage / سفر → "travel"
+    - utilities / utilidades / nebenkosten / services publics → "utilities"
+    - subscriptions / assinaturas / abonnements → "subscriptions"
+    - salary / salário / gehalt / salaire / راتب → "salary"
+    - freelance / freela → "freelance"
+    - investments / investimentos / investissements / استثمارات → "investments"
+    - other / outro / sonstige / autre → "other"
 
     Return a JSON object with:
     {
@@ -122,17 +181,15 @@ defmodule FinBotElixir.Gemini.Client do
         "amount": positive number,
         "description": short descriptive name (e.g. "Uber", "Salary"),
         "category": one of [#{categories}],
-        "type": "expense|income"
+        "type": "expense|income",
+        "tags": [] (only tags EXPLICITLY mentioned by the user in their message; empty list if none were mentioned)
       },
       "ai_response": helpful reply text for the user in the same language as the message ALWAYS.
     }
 
     Rules:
-    - For "transaction": fill transaction_data and set ai_response to a short friendly
-    confirmation, always including the amount and category registered. Category defaults to
-    "other" if unsure; type defaults to "expense" if unsure.
-    - For "finance_tip": set transaction_data to null and set ai_response to a helpful,
-    practical finance tip or answer in the same language as the user's message.
+    - For "transaction": fill transaction_data and set ai_response to a short friendly confirmation in the same language as the user's message. Category must be one of [#{categories}] — use the mapping above to translate the user's category to the correct internal label; default to "other" if unsure. Type defaults to "expense" if unsure. Tags must only include labels that the user explicitly mentioned (e.g. the user wrote "tag: car" or "#groceries"); do NOT infer or invent tags. If the user did not mention any tags, return an empty list. When the user does mention tags, normalize them to lowercase and prefer reusing an existing tag over creating a similar new one.
+    - For "finance_tip": set transaction_data to null and set ai_response to a helpful, practical finance tip or answer in the same language as the user's message.
     - For "app_conversation": set transaction_data to null and ai_response to a helpful answer
     about using the app. See instructions below.
     - For "small_talk": set transaction_data to null and ai_response to a friendly reply
@@ -175,7 +232,10 @@ defmodule FinBotElixir.Gemini.Client do
         original_text: original_text
       }
 
-      Logger.info("Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}")
+      Logger.info(
+        "Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}"
+      )
+
       {:ok, context}
     end
   end

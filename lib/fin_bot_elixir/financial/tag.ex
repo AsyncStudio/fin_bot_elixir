@@ -6,6 +6,7 @@ defmodule FinBotElixir.Financial.Tag do
   @foreign_key_type :binary_id
   schema "tags" do
     field :name, :string
+    belongs_to :user, FinBotElixir.Accounts.User
 
     many_to_many :transactions, FinBotElixir.Financial.Transaction,
       join_through: "transaction_tags"
@@ -16,9 +17,9 @@ defmodule FinBotElixir.Financial.Tag do
   @doc false
   def changeset(tag, attrs) do
     tag
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :user_id])
+    |> validate_required([:name, :user_id])
     |> validate_length(:name, min: 1, max: 50)
-    |> unique_constraint(:name)
+    |> unique_constraint(:name, name: :tags_user_id_name_index)
   end
 end
