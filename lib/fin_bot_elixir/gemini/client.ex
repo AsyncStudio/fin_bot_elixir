@@ -92,36 +92,64 @@ defmodule FinBotElixir.Gemini.Client do
   defp parse_message_type("transaction"), do: :transaction
   defp parse_message_type("data_query"), do: :data_query
   defp parse_message_type("finance_tip"), do: :finance_tip
+  defp parse_message_type("app_conversation"), do: :app_conversation
+  defp parse_message_type("small_talk"), do: :small_talk
   defp parse_message_type(_), do: :unrelated
 
   defp build_classification_prompt(text) do
     categories = Transaction.category_values() |> Enum.join("|")
+    [host: host] = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:url] || "http://localhost:4000"
 
     """
+    You are FinBot, a personal finance assistant. You help users manage their finances by recording transactions,
+    providing financial tips, and answering questions about their spending.
+
     Analyze the following message and classify it into exactly one of these types:
     - "transaction": a financial transaction to be recorded (expense or income with a clear amount)
     - "data_query": a question about the user's recorded financial data or spending history
     - "finance_tip": a question or request about personal finance tips, strategies, or habits
-    - "unrelated": anything not related to personal finance
+    - "app_conversation": a question or statement about using the app itself
+    (e.g. "how do I delete a transaction?" or "how do I use this app?" or "how do I use FinBot?" or "what can you do?")
+    - "small_talk": casual conversation not related to finance (e.g. "how's the weather?")
+    - "unrelated": anything not related to personal finance or not related to the FinBot app (you)
 
     Message: "#{text}"
 
     Return a JSON object with:
     {
-      "message_type": "transaction|data_query|finance_tip|unrelated",
+      "message_type": "transaction|data_query|finance_tip|app_conversation|small_talk|unrelated",
       "transaction_data": {
         "amount": positive number,
         "description": short descriptive name (e.g. "Uber", "Salary"),
         "category": one of [#{categories}],
         "type": "expense|income"
       },
-      "ai_response": helpful reply text for the user
+      "ai_response": helpful reply text for the user in the same language as the message ALWAYS.
     }
 
     Rules:
-    - For "transaction": fill transaction_data and set ai_response to a short friendly confirmation in the same language as the user's message. Category defaults to "other" if unsure; type defaults to "expense" if unsure.
-    - For "finance_tip": set transaction_data to null and set ai_response to a helpful, practical finance tip or answer in the same language as the user's message.
+    - For "transaction": fill transaction_data and set ai_response to a short friendly
+    confirmation, always including the amount and category registered. Category defaults to
+    "other" if unsure; type defaults to "expense" if unsure.
+    - For "finance_tip": set transaction_data to null and set ai_response to a helpful,
+    practical finance tip or answer in the same language as the user's message.
+    - For "app_conversation": set transaction_data to null and ai_response to a helpful answer
+    about using the app. See instructions below.
+    - For "small_talk": set transaction_data to null and ai_response to a friendly reply
+    engaging with the user's message.
     - For "data_query" and "unrelated": set transaction_data to null and ai_response to null.
+
+    IMPORTANT RULE: Always use the same language as the user's message in ai_response.
+
+    How to use FinBot (the app) for "app_conversation" messages:
+    - User can record transactions by sending messages like "I spent $20 on groceries" or "I earned $1000 from freelancing".
+    - User can ask questions about their finances like "How much did I spend on food last month?" or "What's my total income this year?"
+    or "How many transactions have I recorded?"
+    - User can ask for finance tips like "How can I save more money?"
+    or "What's a good budgeting strategy?"
+    - User can login and see a dashboard by asking related questions. When the user asks that, send them
+    the link to their dashboard with the `linking_token` you have stored for them, in the format:
+    "You can view your dashboard and manage your account here: #{host}/auth/google?token=<linking_token>"
 
     Return ONLY valid JSON.
     """

@@ -74,4 +74,9 @@ defmodule FinBotElixir.Accounts do
     "FIN-" <>
       (8 |> :crypto.strong_rand_bytes() |> Base.encode32(padding: false) |> binary_part(0, 4))
   end
+
+  def build_linking_url(user) do
+    [host: host] = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:url] || "http://localhost:4000"
+    "#{host}/auth/google?token=#{user.linking_token}"
+  end
 end
