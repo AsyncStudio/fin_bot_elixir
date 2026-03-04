@@ -62,7 +62,7 @@ defmodule FinBotElixir.Gemini.Interactions do
     send_message(user, response)
   end
 
-  def handle_message_context(context, user, _transaction) when context.ai_response != "" do
+  def handle_message_context(context, user, _transaction) when is_binary(context.ai_response) and context.ai_response != "" do
     send_message(user, context.ai_response)
   end
 

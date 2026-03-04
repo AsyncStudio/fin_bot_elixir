@@ -175,7 +175,7 @@ defmodule FinBotElixir.Gemini.Client do
         original_text: original_text
       }
 
-      Logger.info("Mensagem classificada como '#{message_type}': #{original_text}")
+      Logger.info("Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}")
       {:ok, context}
     end
   end

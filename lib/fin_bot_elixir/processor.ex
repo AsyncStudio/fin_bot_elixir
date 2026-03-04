@@ -50,8 +50,9 @@ defmodule FinBotElixir.Processor do
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
 
     with {:ok, context} <- Client.classify_message(content) do
-      context = Map.put(context, :sender_id, sender_id)
-      handle_classified_message(context, user)
+      context
+        |> Map.put(:sender_id, sender_id)
+        |> handle_classified_message(user)
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
