@@ -71,7 +71,7 @@ defmodule FinBotElixirWeb.CoreComponents do
 
           <p>{msg}</p>
         </div>
-         <div class="flex-1" />
+        <div class="flex-1" />
         <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
           <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
         </button>
@@ -215,7 +215,7 @@ defmodule FinBotElixirWeb.CoreComponents do
           {@rest}
         >
           <option :if={@prompt} value="">{@prompt}</option>
-           {Phoenix.HTML.Form.options_for_select(@options, @value)}
+          {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -481,7 +481,11 @@ defmodule FinBotElixirWeb.CoreComponents do
     ~H"""
     <div class="flex items-center gap-2" {@rest}>
       <div class="rounded-lg flex items-center justify-center">
-        <img src="/images/finbot_logo_transparent.png" alt="FinBot Logo" class={[@image_class, "rounded-full"]} />
+        <img
+          src="/images/finbot_logo_transparent.png"
+          alt="FinBot Logo"
+          class={[@image_class, "rounded-full"]}
+        />
       </div>
       <span class={[@text_class, "font-bold"]}>{gettext("FinBot")}</span>
     </div>

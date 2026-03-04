@@ -2,6 +2,7 @@ defmodule FinBotElixir.Financial do
   @moduledoc """
   The Financial context.
   """
+  require Logger
 
   import Ecto.Query, warn: false
   alias FinBotElixir.Repo
@@ -36,8 +37,7 @@ defmodule FinBotElixir.Financial do
 
     categories =
       from(t in Transaction,
-        where:
-          t.user_id == ^user_id and t.inserted_at >= ^start_dt and t.inserted_at <= ^end_dt,
+        where: t.user_id == ^user_id and t.inserted_at >= ^start_dt and t.inserted_at <= ^end_dt,
         group_by: [t.category, t.type],
         select: %{
           name: t.category,
@@ -237,13 +237,121 @@ defmodule FinBotElixir.Financial do
     Transaction.changeset(transaction, attrs)
   end
 
+  # ============================================================================
+  # TAG CRUD OPERATIONS
+  # ============================================================================
+
+  def list_tags_all() do
+    Repo.all(Tag)
+  end
+
+  @doc """
+  Returns the list of tags for a given user.
+
+  ## Examples
+
+      iex> list_tags(user_id)
+      [%Tag{}, ...]
+
+  """
+  def list_tags(user_id) do
+    from(tag in Tag,
+      where: tag.user_id == ^user_id,
+      order_by: [asc: tag.name]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single tag by id and user_id.
+
+  ## Examples
+
+      iex> get_tag(tag_id, user_id)
+      %Tag{}
+
+      iex> get_tag(non_existent_id, user_id)
+      nil
+
+  """
+  def get_tag(tag_id, user_id) do
+    Repo.get_by(Tag, id: tag_id, user_id: user_id)
+  end
+
+  @doc """
+  Creates a tag for a user.
+
+  ## Examples
+
+      iex> create_tag(user_id, %{name: "work"})
+      {:ok, %Tag{}}
+
+      iex> create_tag(user_id, %{name: ""})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_tag(user_id, attrs \\ %{}) do
+    %Tag{}
+    |> Tag.changeset(Map.put(attrs, "user_id", user_id))
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a tag.
+
+  ## Examples
+
+      iex> update_tag(tag, %{name: "new_name"})
+      {:ok, %Tag{}}
+
+      iex> update_tag(tag, %{name: ""})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_tag(%Tag{} = tag, attrs) do
+    tag
+    |> Tag.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a tag.
+
+  ## Examples
+
+      iex> delete_tag(tag)
+      {:ok, %Tag{}}
+
+      iex> delete_tag(tag)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_tag(%Tag{} = tag) do
+    Repo.delete(tag)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking tag changes.
+
+  ## Examples
+
+      iex> change_tag(tag)
+      %Ecto.Changeset{data: %Tag{}}
+
+  """
+  def change_tag(%Tag{} = tag, attrs \\ %{}) do
+    Tag.changeset(tag, attrs)
+  end
+
   @doc """
   Returns all unique tag names used in transactions belonging to the given user.
   """
   def list_all_tag_names_for_user(user_id) do
     from(tag in Tag,
-      join: tt in "transaction_tags", on: tt.tag_id == tag.id,
-      join: t in Transaction, on: t.id == tt.transaction_id,
+      join: tt in "transaction_tags",
+      on: tt.tag_id == tag.id,
+      join: t in Transaction,
+      on: t.id == tt.transaction_id,
       where: t.user_id == ^user_id,
       select: tag.name,
       distinct: true,
@@ -259,16 +367,16 @@ defmodule FinBotElixir.Financial do
     tag_name = String.trim(tag_name)
 
     tag =
-      case Repo.insert(Tag.changeset(%Tag{}, %{name: tag_name}),
-             on_conflict: :nothing,
-             conflict_target: :name
-           ) do
-        {:ok, %Tag{id: nil}} -> Repo.get_by!(Tag, name: tag_name)
-        {:ok, tag} -> tag
-        {:error, _} -> Repo.get_by!(Tag, name: tag_name)
-      end
+      Repo.insert(
+        Tag.changeset(%Tag{}, %{name: tag_name, user_id: transaction.user_id}),
+        on_conflict: :nothing,
+        conflict_target: [:user_id, :name]
+      )
+
+    # tag = Repo.get_by!(Tag, user_id: transaction.user_id, name: tag_name)
 
     transaction = Repo.preload(transaction, :tags)
+    Logger.debug("Associando tag \n'#{inspect(tag)}'\n\n à transação \n#{inspect(transaction)}")
 
     if Enum.any?(transaction.tags, &(&1.name == tag_name)) do
       {:ok, transaction}

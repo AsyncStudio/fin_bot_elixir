@@ -13,10 +13,10 @@ defmodule FinBotElixir.Gemini.Client do
           "description" => %{"type" => "string"},
           "category" => %{"type" => "string"},
           "type" => %{"type" => "string"},
-	        "tags" => %{
-	          "type" => "array",
-	          "items" => %{"type" => "string"}
-	        }
+          "tags" => %{
+            "type" => "array",
+            "items" => %{"type" => "string"}
+          }
         }
       },
       "ai_response" => %{"type" => "string"}
@@ -42,11 +42,12 @@ defmodule FinBotElixir.Gemini.Client do
   def classify_message(user_text, existing_tags \\ []) do
     prompt = build_classification_prompt(user_text, existing_tags)
 
-    with {:ok, response} <- Gemini.generate(prompt,
-      response_json_schema: @response_schema,
-      response_mime_type: @response_mime_type,
-      temperature: 0.3
-    ) do
+    with {:ok, response} <-
+           Gemini.generate(prompt,
+             response_json_schema: @response_schema,
+             response_mime_type: @response_mime_type,
+             temperature: 0.3
+           ) do
       generate_output(response, user_text)
     else
       {:error, reason} ->
@@ -56,13 +57,15 @@ defmodule FinBotElixir.Gemini.Client do
   end
 
   def classify_multimodal(binary, mime_type, user_text) do
-    prompt_text = build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
+    prompt_text =
+      build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
 
     # Upload a file
-    {:ok, file} = Gemini.APIs.Files.upload_data(binary,
-      mime_type: "image/png",
-      display_name: "In-Memory Image"
-    )
+    {:ok, file} =
+      Gemini.APIs.Files.upload_data(binary,
+        mime_type: "image/png",
+        display_name: "In-Memory Image"
+      )
 
     # Wait for processing (videos/large files)
     {:ok, ready} = Gemini.APIs.Files.wait_for_processing(file.name)
@@ -73,11 +76,12 @@ defmodule FinBotElixir.Gemini.Client do
       %{file_uri: ready.uri, mime_type: ready.mime_type}
     ]
 
-    with {:ok, response} <- Gemini.generate(content_parts,
-      response_json_schema: @response_schema,
-      response_mime_type: @response_mime_type,
-      temperature: 0.3
-    ) do
+    with {:ok, response} <-
+           Gemini.generate(content_parts,
+             response_json_schema: @response_schema,
+             response_mime_type: @response_mime_type,
+             temperature: 0.3
+           ) do
       generate_output(response, user_text)
     else
       {:error, reason} ->
@@ -105,7 +109,7 @@ defmodule FinBotElixir.Gemini.Client do
     prompt = build_financial_tip_prompt(context.original_text)
     {:ok, response} = Gemini.generate(prompt)
 
-    context |> Map.put(:ai_response, parse_text_response(response) )
+    context |> Map.put(:ai_response, parse_text_response(response))
   end
 
   # region Internal
@@ -123,7 +127,10 @@ defmodule FinBotElixir.Gemini.Client do
   """
   def build_classification_prompt(text, existing_tags \\ []) do
     categories = Transaction.category_values() |> Enum.join("|")
-    host = Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] || "http://localhost:4000"
+
+    host =
+      Application.fetch_env!(:fin_bot_elixir, FinBotElixirWeb.Endpoint)[:host] ||
+        "http://localhost:4000"
 
     tags_hint =
       case existing_tags do
@@ -225,7 +232,10 @@ defmodule FinBotElixir.Gemini.Client do
         original_text: original_text
       }
 
-      Logger.info("Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}")
+      Logger.info(
+        "Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}"
+      )
+
       {:ok, context}
     end
   end

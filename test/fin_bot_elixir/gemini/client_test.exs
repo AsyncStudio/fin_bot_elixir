@@ -187,6 +187,7 @@ defmodule FinBotElixir.Gemini.ClientTest do
       }
 
       context = Client.parse_classification_data(data, "coffee $20")
+
       assert is_nil(context.transaction_data["tags"]) or
                is_list(context.transaction_data["tags"])
     end

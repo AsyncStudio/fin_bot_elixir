@@ -19,6 +19,7 @@ defmodule FinBotElixir.Financial.Transaction do
     %{name: "other", label: "Other", type: "expense"}
   ]
 
+  @derive Jason.Encoder
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "transactions" do

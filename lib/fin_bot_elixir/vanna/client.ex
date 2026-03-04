@@ -2,12 +2,12 @@ defmodule FinBotElixir.Vanna.Client do
   require Logger
 
   def make_query(query_text) do
-
     body = %{
       "message" => query_text,
       "conversation_id" => "default_conversation",
       "metadata" => %{}
     }
+
     token = ""
 
     case Req.post("#{base_url()}/api/vanna/v2/chat_poll", json: body, auth: {:bearer, token}) do
@@ -15,9 +15,7 @@ defmodule FinBotElixir.Vanna.Client do
         :ok
 
       {:error, reason} ->
-        Logger.warn(
-          "Erro ao tentar comunicar com o serviço vanna: #{inspect(reason)}"
-        )
+        Logger.warn("Erro ao tentar comunicar com o serviço vanna: #{inspect(reason)}")
 
         :error
     end

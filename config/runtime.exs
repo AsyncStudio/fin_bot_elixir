@@ -51,11 +51,9 @@ config :fin_bot_elixir, :whatsapp,
   token: env!("WHATSAPP_ACCESS_TOKEN", :string),
   phone_id: env!("WHATSAPP_PHONE_NUMBER_ID", :string)
 
-config :fin_bot_elixir, :vanna,
-  base_url: env!("VANNA_SERVICE_HOST", :string)
+config :fin_bot_elixir, :vanna, base_url: env!("VANNA_SERVICE_HOST", :string)
 
 # endregion
-
 
 maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 

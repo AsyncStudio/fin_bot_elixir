@@ -12,8 +12,10 @@ defmodule FinBotElixir.WhatsApp.MediaClient do
 
   def download_media(url) do
     token = FinBotElixir.WhatsApp.Client.token()
+
     with {:ok, response} <- Req.get(url, auth: {:bearer, token}) do
-      {:ok, response.body} # Retorna o binário do arquivo
+      # Retorna o binário do arquivo
+      {:ok, response.body}
     end
   end
 end

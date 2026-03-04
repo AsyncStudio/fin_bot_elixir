@@ -60,6 +60,7 @@ defmodule FinBotElixirWeb.AuthController do
 
       {:error, reason} ->
         Logger.error("Google callback error: #{inspect(reason)}")
+
         conn
         |> delete_session(:linking_token)
         |> delete_session(:google_session_params)

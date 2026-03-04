@@ -23,7 +23,10 @@ defmodule FinBotElixir.Processor do
   end
 
   defp process_message(%{from: sender_id, type: type} = params) when type in [:image, :audio] do
-    Logger.info("[MEDIA] Iniciando processamento da mensagem do sender #{sender_id}: #{inspect(params)}")
+    Logger.info(
+      "[MEDIA] Iniciando processamento da mensagem do sender #{sender_id}: #{inspect(params)}"
+    )
+
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
 
     # 1. Busca URL e baixa o binário
@@ -39,7 +42,10 @@ defmodule FinBotElixir.Processor do
       handle_classified_message(context, user)
     else
       {:error, reason} ->
-        Logger.error("[MEDIA] Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
+        Logger.error(
+          "[MEDIA] Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}"
+        )
+
         {:error, reason}
     end
   end
@@ -51,11 +57,10 @@ defmodule FinBotElixir.Processor do
     existing_tags = Financial.list_all_tag_names_for_user(user.id)
 
     with {:ok, context} <- Client.classify_message(content, existing_tags) do
-      context 
-        |> Map.put(:sender_id, sender_id)
-        |> Map.put(:existing_tags, existing_tags)
-        |> handle_classified_message(user)
-      
+      context
+      |> Map.put(:sender_id, sender_id)
+      |> Map.put(:existing_tags, existing_tags)
+      |> handle_classified_message(user)
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
@@ -72,14 +77,18 @@ defmodule FinBotElixir.Processor do
       Map.merge(transaction_data, %{
         "raw_input" => context.original_text,
         "user_id" => user.id,
-        "category" =>
-          transaction_data["category"] || @default_category
+        "category" => transaction_data["category"] || @default_category
       })
 
     Logger.debug("Dados extraídos para criação da transação: #{inspect(attrs)}")
 
     with {:ok, transaction} <- Financial.create_transaction_for_user(user.id, attrs) do
-      apply_tags(transaction, transaction_data["tags"] || [], Map.get(context, :existing_tags, []))
+      apply_tags(
+        transaction,
+        transaction_data["tags"] || [],
+        Map.get(context, :existing_tags, [])
+      )
+
       Logger.info("Transação salva no FinBot para o sender #{context.sender_id}")
       Interactions.handle_message_context(context, user, transaction)
       :ok
@@ -95,8 +104,8 @@ defmodule FinBotElixir.Processor do
 
   defp handle_classified_message(%{message_type: :finance_tip} = context, user) do
     context
-      |> Client.process_financial_tip_request()
-      |> Interactions.handle_message_context(user, nil)
+    |> Client.process_financial_tip_request()
+    |> Interactions.handle_message_context(user, nil)
   end
 
   defp handle_classified_message(%{message_type: :data_query} = context, user) do
@@ -115,6 +124,10 @@ defmodule FinBotElixir.Processor do
   defp apply_tags(_transaction, [], _existing_tags), do: :ok
 
   defp apply_tags(transaction, tags, existing_tags) when is_list(tags) do
+    Logger.info(
+      "Aplicando tags sugeridas pela IA para a transação #{transaction.id}: #{inspect(tags)}"
+    )
+
     Enum.each(tags, fn raw_tag ->
       tag_name = normalize_tag_name(raw_tag, existing_tags)
       Financial.add_tag_to_transaction(transaction, tag_name)
@@ -134,4 +147,41 @@ defmodule FinBotElixir.Processor do
 
     match || normalized
   end
+
+  # endregion
+  # region: Retry
+
+  defp retry(fun, retries_left, attempt \\ 1)
+
+  defp retry(_fun, 0, attempt) do
+    Logger.error("Processamento falhou após #{attempt - 1} tentativas, desistindo.")
+  end
+
+  defp retry(fun, retries_left, attempt) do
+    case fun.() do
+      :ok ->
+        :ok
+
+      {:error, :no_retry} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning(
+          "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
+        )
+
+        Process.sleep(@retry_delay_ms)
+        retry(fun, retries_left - 1, attempt + 1)
+    end
+  rescue
+    exception ->
+      Logger.warning(
+        "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
+      )
+
+      Process.sleep(@retry_delay_ms)
+      retry(fun, retries_left - 1, attempt + 1)
+  end
+
+  # endregion
 end

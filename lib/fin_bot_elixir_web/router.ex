@@ -47,6 +47,7 @@ defmodule FinBotElixirWeb.Router do
     post "/webhook/whatsapp", WhatsappController, :receive
 
     resources "/transactions", TransactionController, except: [:new, :edit]
+    resources "/tags", TagController, except: [:new, :edit]
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
