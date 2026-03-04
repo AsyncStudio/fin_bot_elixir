@@ -12,7 +12,7 @@ defmodule FinBotElixir.Processor do
   @retry_delay_ms 5_000
 
   def handle_webhook_message(params) do
-    Logger.info("Recebida nova mensagem do webhook: #{inspect(params)}")
+    Logger.info("Iniciando processador para msg do webhook: #{inspect(params)}")
 
     Task.Supervisor.start_child(FinBotElixir.TaskSupervisor, fn ->
       retry(fn -> process_message(params) end, @max_retries)
@@ -22,36 +22,26 @@ defmodule FinBotElixir.Processor do
     :ok
   end
 
-  defp retry(fun, retries_left, attempt \\ 1)
+  defp process_message(%{from: sender_id, type: type} = params) when type in [:image, :audio] do
+    Logger.info("[MEDIA] Iniciando processamento da mensagem do sender #{sender_id}: #{inspect(params)}")
+    {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
 
-  defp retry(_fun, 0, attempt) do
-    Logger.error("Processamento falhou após #{attempt - 1} tentativas, desistindo.")
-  end
+    # 1. Busca URL e baixa o binário
+    {:ok, url} = FinBotElixir.WhatsApp.MediaClient.get_media_url(params.media_id)
+    {:ok, binary} = FinBotElixir.WhatsApp.MediaClient.download_media(url)
 
-  defp retry(fun, retries_left, attempt) do
-    case fun.() do
-      :ok ->
-        :ok
+    # 2. Define o MIME type (simplificado para o exemplo)
+    mime_type = if type == :image, do: "image/jpeg", else: "audio/ogg"
 
-      {:error, :no_retry} ->
-        :ok
-
+    # 3. Classifica com Multimodalidade
+    with {:ok, context} <- Client.classify_multimodal(binary, mime_type, params[:caption] || "") do
+      context = Map.put(context, :sender_id, sender_id)
+      handle_classified_message(context, user)
+    else
       {:error, reason} ->
-        Logger.warning(
-          "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
-        )
-
-        Process.sleep(@retry_delay_ms)
-        retry(fun, retries_left - 1, attempt + 1)
+        Logger.error("[MEDIA] Erro ao classificar mensagem para sender #{sender_id}: #{inspect(reason)}")
+        {:error, reason}
     end
-  rescue
-    exception ->
-      Logger.warning(
-        "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
-      )
-
-      Process.sleep(@retry_delay_ms)
-      retry(fun, retries_left - 1, attempt + 1)
   end
 
   defp process_message(%{from: sender_id, text: content}) do
@@ -68,6 +58,8 @@ defmodule FinBotElixir.Processor do
         {:error, reason}
     end
   end
+
+  # region: Classification
 
   defp handle_classified_message(%{message_type: :transaction} = context, user) do
     transaction_data = context.transaction_data || %{}
@@ -112,4 +104,41 @@ defmodule FinBotElixir.Processor do
     Interactions.handle_message_context(context, user, nil)
     :ok
   end
+
+  # endregion
+  # region: Retry
+
+  defp retry(fun, retries_left, attempt \\ 1)
+
+  defp retry(_fun, 0, attempt) do
+    Logger.error("Processamento falhou após #{attempt - 1} tentativas, desistindo.")
+  end
+
+  defp retry(fun, retries_left, attempt) do
+    case fun.() do
+      :ok ->
+        :ok
+
+      {:error, :no_retry} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning(
+          "Tentativa #{attempt} falhou: #{inspect(reason)}. Tentativas restantes: #{retries_left - 1}"
+        )
+
+        Process.sleep(@retry_delay_ms)
+        retry(fun, retries_left - 1, attempt + 1)
+    end
+  rescue
+    exception ->
+      Logger.warning(
+        "Tentativa #{attempt} falhou com exceção: #{inspect(exception)}. Tentativas restantes: #{retries_left - 1}"
+      )
+
+      Process.sleep(@retry_delay_ms)
+      retry(fun, retries_left - 1, attempt + 1)
+  end
+
+  # endregion
 end

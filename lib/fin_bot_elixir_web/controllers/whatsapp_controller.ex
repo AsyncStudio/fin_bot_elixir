@@ -18,6 +18,7 @@ defmodule FinBotElixirWeb.WhatsappController do
   end
 
   def receive(conn, params) do
+    Logger.info("Recebida nova mensagem do webhook: #{inspect(params)}")
     # A estrutura da Meta é profunda, vamos extrair o essencial
     case extract_message(params) do
       %{from: from, text: text} ->
@@ -33,7 +34,18 @@ defmodule FinBotElixirWeb.WhatsappController do
   end
 
   defp extract_message(%{"entry" => [%{"changes" => [%{"value" => %{"messages" => [msg]}}]}]}) do
-    %{from: msg["from"], text: msg["text"]["body"]}
+    case msg["type"] do
+      "text" ->
+        %{from: msg["from"], text: msg["text"]["body"], type: :text}
+
+      "image" ->
+        %{from: msg["from"], media_id: msg["image"]["id"], caption: msg["image"]["caption"], type: :image}
+
+      "audio" ->
+        %{from: msg["from"], media_id: msg["audio"]["id"], type: :audio}
+
+      _ -> nil
+    end
   end
 
   defp extract_message(_), do: nil

@@ -35,7 +35,7 @@ defmodule FinBotElixir.WhatsApp.Client do
     end
   end
 
-  defp base_url, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:base_url]
-  defp token, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:token]
-  defp phone_id, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:phone_id]
+  def token, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:token]
+  def base_url, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:base_url]
+  def phone_id, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:phone_id]
 end

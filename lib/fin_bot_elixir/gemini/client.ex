@@ -1,6 +1,26 @@
 defmodule FinBotElixir.Gemini.Client do
   @model "gemini-1.5-flash"
 
+  @response_schema %{
+    "type" => "object",
+    "required" => ["message_type"],
+    "properties" => %{
+      "message_type" => %{"type" => "string"},
+      "transaction_data" => %{
+        "type" => "object",
+        "properties" => %{
+          "amount" => %{"type" => "number"},
+          "description" => %{"type" => "string"},
+          "category" => %{"type" => "string"},
+          "type" => %{"type" => "string"}
+        }
+      },
+      "ai_response" => %{"type" => "string"}
+    }
+  }
+
+  @response_mime_type "application/json"
+
   require Logger
 
   alias FinBotElixir.Financial.Transaction
@@ -13,44 +33,41 @@ defmodule FinBotElixir.Gemini.Client do
     - `:ai_response` — AI-generated reply text (for transactions and finance tips), or `nil`
     - `:original_text` — the raw user input
   """
-  def classify_message(text) do
-    prompt = build_classification_prompt(text)
+  def classify_message(user_text) do
+    prompt = build_classification_prompt(user_text)
 
-    {:ok, response} =
-      Gemini.generate(prompt,
-        response_json_schema: %{
-          "type" => "object",
-          "required" => ["message_type"],
-          "properties" => %{
-            "message_type" => %{"type" => "string"},
-            "transaction_data" => %{
-              "type" => "object",
-              "properties" => %{
-                "amount" => %{"type" => "number"},
-                "description" => %{"type" => "string"},
-                "category" => %{"type" => "string"},
-                "type" => %{"type" => "string"}
-              }
-            },
-            "ai_response" => %{"type" => "string"}
-          }
-        },
-        response_mime_type: "application/json",
-        temperature: 0.3
-      )
+    with {:ok, response} <- Gemini.generate(prompt,
+      response_json_schema: @response_schema,
+      response_mime_type: @response_mime_type,
+      temperature: 0.3
+    ) do
+      generate_output(response, user_text)
+    else
+      {:error, reason} ->
+        Logger.error("Erro ao classificar mensagem: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
 
-    with {:ok, data} <- parse_response(response) do
-      message_type = parse_message_type(data["message_type"])
+  def classify_multimodal(binary, mime_type, user_text) do
+    prompt_text = build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
 
-      context = %{
-        message_type: message_type,
-        transaction_data: data["transaction_data"],
-        ai_response: data["ai_response"],
-        original_text: text
-      }
+    # Estrutura para o Gemini receber o binário + texto
+    content_parts = [
+      %{text: prompt_text},
+      %{inline_data: %{mime_type: mime_type, data: Base.encode64(binary)}}
+    ]
 
-      Logger.info("Mensagem classificada como '#{message_type}': #{text}")
-      {:ok, context}
+    with {:ok, response} <- Gemini.generate(content_parts,
+      response_json_schema: @response_schema,
+      response_mime_type: @response_mime_type,
+      temperature: 0.3
+    ) do
+      generate_output(response, user_text)
+    else
+      {:error, reason} ->
+        Logger.error("Erro ao classificar mensagem: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 
@@ -60,6 +77,8 @@ defmodule FinBotElixir.Gemini.Client do
 
     context |> Map.put(:ai_response, parse_text_response(response) )
   end
+
+  # region Internal
 
   defp parse_message_type("transaction"), do: :transaction
   defp parse_message_type("data_query"), do: :data_query
@@ -108,6 +127,22 @@ defmodule FinBotElixir.Gemini.Client do
     """
   end
 
+  defp generate_output(response, original_text) do
+    with {:ok, data} <- parse_response(response) do
+      message_type = parse_message_type(data["message_type"])
+
+      context = %{
+        message_type: message_type,
+        transaction_data: data["transaction_data"],
+        ai_response: data["ai_response"],
+        original_text: original_text
+      }
+
+      Logger.info("Mensagem classificada como '#{message_type}': #{original_text}")
+      {:ok, context}
+    end
+  end
+
   def parse_text_response(body) do
     text_response =
       body.candidates
@@ -130,4 +165,6 @@ defmodule FinBotElixir.Gemini.Client do
       _ -> {:error, "Falha no parse do JSON da IA"}
     end
   end
+
+  # endregion
 end
