@@ -27,8 +27,8 @@ defmodule FinBotElixir.Processor do
     {:ok, user} = Accounts.find_or_create_by_whatsapp(sender_id)
 
     # 1. Busca URL e baixa o binário
-    {:ok, url} = FinBotElixir.WhatsApp.MediaClient.get_media_url(params.media_id)
-    {:ok, binary} = FinBotElixir.WhatsApp.MediaClient.download_media(url)
+    # {:ok, url} = FinBotElixir.WhatsApp.MediaClient.get_media_url(params.media_id)
+    {:ok, binary} = FinBotElixir.WhatsApp.MediaClient.download_media(params.url)
 
     # 2. Define o MIME type (simplificado para o exemplo)
     mime_type = if type == :image, do: "image/jpeg", else: "audio/ogg"
