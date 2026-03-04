@@ -140,7 +140,7 @@ defmodule FinBotElixir.Gemini.ClientTest do
   end
 
   describe "parse_classification_data/2 – tag extraction" do
-    test "includes tags from the AI response" do
+    test "includes tags that the user explicitly mentioned" do
       data = %{
         "message_type" => "transaction",
         "transaction_data" => %{
@@ -153,8 +153,25 @@ defmodule FinBotElixir.Gemini.ClientTest do
         "ai_response" => "Expense recorded!"
       }
 
-      context = Client.parse_classification_data(data, "filled up the car, $45")
+      context = Client.parse_classification_data(data, "filled up the car #fuel #car, $45")
       assert context.transaction_data["tags"] == ["car", "fuel"]
+    end
+
+    test "returns empty tags when user did not mention any tags" do
+      data = %{
+        "message_type" => "transaction",
+        "transaction_data" => %{
+          "amount" => 45.0,
+          "description" => "Gas station",
+          "category" => "transport",
+          "type" => "expense",
+          "tags" => []
+        },
+        "ai_response" => "Expense recorded!"
+      }
+
+      context = Client.parse_classification_data(data, "filled up the car, $45")
+      assert context.transaction_data["tags"] == []
     end
 
     test "handles missing tags gracefully (nil)" do
@@ -229,9 +246,10 @@ defmodule FinBotElixir.Gemini.ClientTest do
       assert String.contains?(prompt, message)
     end
 
-    test "includes instructions to extract tags" do
+    test "instructs the AI to only include explicitly mentioned tags" do
       prompt = Client.build_classification_prompt("test")
-      assert String.contains?(prompt, "tags")
+      assert String.contains?(prompt, "EXPLICITLY mentioned by the user")
+      assert String.contains?(prompt, "empty list if none were mentioned")
     end
 
     test "includes existing tags hint when provided" do

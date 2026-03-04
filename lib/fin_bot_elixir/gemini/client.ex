@@ -175,13 +175,13 @@ defmodule FinBotElixir.Gemini.Client do
         "description": short descriptive name (e.g. "Uber", "Salary"),
         "category": one of [#{categories}],
         "type": "expense|income",
-        "tags": ["tag1", "tag2"] (1-3 short lowercase tags relevant to the transaction)
+        "tags": [] (only tags EXPLICITLY mentioned by the user in their message; empty list if none were mentioned)
       },
       "ai_response": helpful reply text for the user in the same language as the message ALWAYS.
     }
 
     Rules:
-    - For "transaction": fill transaction_data and set ai_response to a short friendly confirmation in the same language as the user's message. Category must be one of [#{categories}] — use the mapping above to translate the user's category to the correct internal label; default to "other" if unsure. Type defaults to "expense" if unsure. Tags must be short, lowercase, and descriptive (e.g. "car", "work", "groceries"). Prefer reusing an existing tag over creating a similar new one.
+    - For "transaction": fill transaction_data and set ai_response to a short friendly confirmation in the same language as the user's message. Category must be one of [#{categories}] — use the mapping above to translate the user's category to the correct internal label; default to "other" if unsure. Type defaults to "expense" if unsure. Tags must only include labels that the user explicitly mentioned (e.g. the user wrote "tag: car" or "#groceries"); do NOT infer or invent tags. If the user did not mention any tags, return an empty list. When the user does mention tags, normalize them to lowercase and prefer reusing an existing tag over creating a similar new one.
     - For "finance_tip": set transaction_data to null and set ai_response to a helpful, practical finance tip or answer in the same language as the user's message.
     - For "app_conversation": set transaction_data to null and ai_response to a helpful answer
     about using the app. See instructions below.
