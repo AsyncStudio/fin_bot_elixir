@@ -8,3 +8,6 @@ compose:
 migrate:
 	ENV_FILE=.env.dev mix ecto.migrate
 
+migrate-prod:
+	ENV_FILE=.env.prod mix ecto.migrate
+
