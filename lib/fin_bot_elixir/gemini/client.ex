@@ -52,10 +52,19 @@ defmodule FinBotElixir.Gemini.Client do
   def classify_multimodal(binary, mime_type, user_text) do
     prompt_text = build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
 
+    # Upload a file
+    {:ok, file} = Gemini.APIs.Files.upload_data(binary,
+      mime_type: "image/png",
+      display_name: "In-Memory Image"
+    )
+
+    # Wait for processing (videos/large files)
+    {:ok, ready} = Files.wait_for_processing(file.name)
+
     # Estrutura para o Gemini receber o binário + texto
     content_parts = [
       %{text: prompt_text},
-      %{inline_data: %{mime_type: mime_type, data: Base.encode64(binary)}}
+      %{file_uri: ready.uri, mime_type: ready.mime_type}
     ]
 
     with {:ok, response} <- Gemini.generate(content_parts,
