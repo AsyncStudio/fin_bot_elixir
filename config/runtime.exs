@@ -68,9 +68,9 @@ config :fin_bot_elixir, FinBotElixir.Repo,
   pool_size: String.to_integer(env!("POOL_SIZE", :string) || "10"),
 
   # PROD CONFIGS
-  ssl: config_env() == :prod,
-  stacktrace: config_env() == :prod,
-  show_sensitive_data_on_connection_error: config_env() == :prod,
+  ssl: env!("DATABASE_SSL", :string) == "true",
+  stacktrace: config_env() != :prod,
+  show_sensitive_data_on_connection_error: config_env() != :prod,
   socket_options: maybe_ipv6
 
 if config_env() == :prod do
