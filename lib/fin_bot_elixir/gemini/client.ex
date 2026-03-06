@@ -197,6 +197,7 @@ defmodule FinBotElixir.Gemini.Client do
     - For "data_query" and "unrelated": set transaction_data to null and ai_response to null.
 
     IMPORTANT RULE: Always use the same language as the user's message in ai_response.
+    IMPORTANT RULE: Always use casual, friendly language in ai_response. Use 1 or 2 emojis per response (but never more than 2).
 
     How to use FinBot (the app) for "app_conversation" messages:
     - User can record transactions by sending messages like "I spent $20 on groceries" or "I earned $1000 from freelancing".

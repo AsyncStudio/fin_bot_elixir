@@ -38,7 +38,19 @@ defmodule FinBotElixir.Gemini.Interactions do
   Receives the message context, the user, and optionally the saved transaction.
   """
   def handle_message_context(%{message_type: :transaction} = context, user, transaction) do
-    response = context.ai_response || Enum.random(@expense_responses)
+    base_response = context.ai_response || Enum.random(@expense_responses)
+
+    response =
+      if transaction do
+        weekly_total =
+          Financial.weekly_category_total(transaction.user_id, transaction.category, transaction.type)
+
+        weekly_suffix = format_weekly_total(weekly_total, transaction.type)
+        base_response <> "\n\n" <> weekly_suffix
+      else
+        base_response
+      end
+
     send_message(user, response)
   end
 
@@ -100,6 +112,48 @@ defmodule FinBotElixir.Gemini.Interactions do
   # endregion
 
   # region: Helpers
+
+  defp format_weekly_total(total, "expense") do
+    "💡 Você gastou R$ #{format_currency(total)} nessa categoria nos últimos 7 dias."
+  end
+
+  defp format_weekly_total(total, _type) do
+    "💰 Você recebeu R$ #{format_currency(total)} nessa categoria nos últimos 7 dias."
+  end
+
+  defp format_currency(amount) do
+    amount
+    |> Decimal.round(2)
+    |> Decimal.to_string()
+    |> format_number_br()
+  end
+
+  defp format_number_br(str) do
+    case String.split(str, ".") do
+      [int_part, dec_part] ->
+        "#{format_integer_part(int_part)},#{String.pad_trailing(dec_part, 2, "0")}"
+
+      [int_part] ->
+        "#{format_integer_part(int_part)},00"
+    end
+  end
+
+  defp format_integer_part(str) do
+    {sign, digits} =
+      if String.starts_with?(str, "-"),
+        do: {"-", String.trim_leading(str, "-")},
+        else: {"", str}
+
+    formatted =
+      digits
+      |> String.graphemes()
+      |> Enum.reverse()
+      |> Enum.chunk_every(3)
+      |> Enum.join(".")
+      |> String.reverse()
+
+    sign <> formatted
+  end
 
   defp send_message(user, message) do
     message

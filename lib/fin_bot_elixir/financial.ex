@@ -129,6 +129,28 @@ defmodule FinBotElixir.Financial do
   end
 
   @doc """
+  Returns the total amount for a specific category and type in the last 7 days for a user.
+  Returns a Decimal (0 if no transactions found).
+  """
+  def weekly_category_total(user_id, category, type) do
+    week_ago = NaiveDateTime.add(NaiveDateTime.utc_now(), -7, :day)
+
+    from(t in Transaction,
+      where:
+        t.user_id == ^user_id and
+          t.category == ^category and
+          t.type == ^type and
+          t.inserted_at >= ^week_ago,
+      select: sum(t.amount)
+    )
+    |> Repo.one()
+    |> case do
+      nil -> Decimal.new(0)
+      total -> total
+    end
+  end
+
+  @doc """
   Gets a single transaction.
 
   Raises `Ecto.NoResultsError` if the Transaction does not exist.
