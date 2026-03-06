@@ -423,6 +423,51 @@ defmodule FinBotElixir.Financial do
     |> Repo.update()
   end
 
+  @doc """
+  Executes a raw SQL SELECT query safely and returns the results as a list of maps.
+  Only SELECT queries are allowed; any other statement type is rejected with `{:error, :not_select}`.
+  """
+  def execute_raw_query(sql) do
+    trimmed = String.trim(sql)
+
+    # Strip SQL block comments (/* ... */) and line comments (-- ...) before validation
+    sanitized =
+      trimmed
+      |> String.replace(~r/\/\*.*?\*\//s, "")
+      |> String.replace(~r/--[^\n]*/, "")
+      |> String.trim()
+
+    first_word = sanitized |> String.upcase() |> String.split() |> Enum.at(0, "")
+    has_semicolon = String.contains?(sanitized, ";")
+
+    cond do
+      first_word != "SELECT" ->
+        Logger.warning("execute_raw_query: rejecting non-SELECT query")
+        {:error, :not_select}
+
+      has_semicolon ->
+        Logger.warning("execute_raw_query: rejecting query with semicolon (multiple statements)")
+        {:error, :multiple_statements}
+
+      true ->
+        case Ecto.Adapters.SQL.query(Repo, sanitized, []) do
+          {:ok, result} ->
+            rows =
+              Enum.map(result.rows, fn row ->
+                result.columns
+                |> Enum.zip(row)
+                |> Map.new()
+              end)
+
+            {:ok, rows}
+
+          {:error, reason} ->
+            Logger.error("execute_raw_query: erro ao executar SQL: #{inspect(reason)}")
+            {:error, reason}
+        end
+    end
+  end
+
   defp month_range(month, year) do
     days_in_month = Calendar.ISO.days_in_month(year, month)
     start_dt = NaiveDateTime.new!(year, month, 1, 0, 0, 0)
