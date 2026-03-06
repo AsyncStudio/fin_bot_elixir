@@ -59,8 +59,30 @@ defmodule FinBotElixir.MessageHandler do
   end
 
   def handle_classified_message(%{message_type: :data_query} = context, user) do
-    # TODO: Handle Data query AI
-    Interactions.handle_message_context(context, user, nil)
+    Logger.info("Processando data_query para sender #{context.sender_id}")
+
+    result =
+      with {:ok, sql} <- Client.generate_sql(context.original_text, user.id),
+           :ok <- validate_sql_scope(sql, user.id),
+           {:ok, results} <- Financial.execute_raw_query(sql),
+           {:ok, human_response} <- Client.humanize_results(results, context.original_text) do
+        {:ok, human_response}
+      else
+        {:error, reason} ->
+          Logger.error(
+            "Erro ao processar data_query para sender #{context.sender_id}: #{inspect(reason)}"
+          )
+
+          {:error, reason}
+      end
+
+    updated_context =
+      case result do
+        {:ok, human_response} -> Map.put(context, :ai_response, human_response)
+        {:error, _reason} -> context
+      end
+
+    Interactions.handle_message_context(updated_context, user, nil)
     :ok
   end
 
@@ -72,6 +94,17 @@ defmodule FinBotElixir.MessageHandler do
   # ---------------------------------------------------------------------------
   # Tag helpers
   # ---------------------------------------------------------------------------
+
+  # Validates that the AI-generated SQL references the expected user_id to prevent
+  # data leakage across users due to prompt injection or AI hallucination.
+  defp validate_sql_scope(sql, user_id) do
+    if String.contains?(sql, to_string(user_id)) do
+      :ok
+    else
+      Logger.error("validate_sql_scope: SQL does not contain user_id #{user_id}, rejecting")
+      {:error, :missing_user_scope}
+    end
+  end
 
   # Applies AI-suggested tags to a transaction, normalizing each tag against
   # already-existing user tags to avoid near-duplicate tags (e.g. "car" vs "cars").

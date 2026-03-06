@@ -63,8 +63,16 @@ defmodule FinBotElixir.Gemini.Interactions do
   end
 
   ## DATA QUERY
-  def handle_message_context(%{message_type: :data_query}, user, _transaction) do
-    response = Gettext.gettext(FinBotElixirWeb.Gettext, @data_query_response_msgid)
+  def handle_message_context(%{message_type: :data_query} = context, user, _transaction) do
+    ai_response = Map.get(context, :ai_response)
+
+    response =
+      if is_binary(ai_response) and ai_response != "" do
+        ai_response
+      else
+        Gettext.gettext(FinBotElixirWeb.Gettext, @data_query_response_msgid)
+      end
+
     send_message(user, response)
   end
 
