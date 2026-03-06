@@ -14,7 +14,7 @@ config :fin_bot_elixir,
 config :fin_bot_elixir, Oban,
   repo: FinBotElixir.Repo,
   plugins: [Oban.Plugins.Pruner],
-  queues: [default: 10]
+  queues: [default: 10, messages: 5]
 
 config :fin_bot_elixir, FinBotElixirWeb.Gettext,
   default_locale: "pt_BR",
