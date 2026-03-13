@@ -23,7 +23,7 @@ defmodule FinBotElixir.Gemini.Interactions do
   Handles the appropriate response for each classified message type.
   Receives the message context, the user, and optionally the saved transaction.
   """
-  def handle_message_context(%{message_type: :transaction} = context, user, _transaction) do
+  def handle_message_context(%{message_type: :transaction} = context, user, transaction) do
     base_response = context.ai_response || Enum.random(@expense_responses)
 
     response =
