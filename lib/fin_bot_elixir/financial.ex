@@ -388,14 +388,12 @@ defmodule FinBotElixir.Financial do
   def add_tag_to_transaction(%Transaction{} = transaction, tag_name) do
     tag_name = String.trim(tag_name)
 
-    tag =
+    {:ok, tag} =
       Repo.insert(
         Tag.changeset(%Tag{}, %{name: tag_name, user_id: transaction.user_id}),
         on_conflict: :nothing,
         conflict_target: [:user_id, :name]
       )
-
-    # tag = Repo.get_by!(Tag, user_id: transaction.user_id, name: tag_name)
 
     transaction = Repo.preload(transaction, :tags)
     Logger.debug("Associando tag \n'#{inspect(tag)}'\n\n à transação \n#{inspect(transaction)}")

@@ -31,8 +31,8 @@ defmodule FinBotElixir.Workers.MediaMessageWorker do
          {:ok, binary} <- MediaClient.download_media(args["url"]),
          {:ok, context} <- Client.classify_multimodal(binary, mime_type, args["caption"] || "") do
       context
-      |> Map.put(:sender_id, sender_id)
-      |> MessageHandler.handle_classified_message(user)
+        |> Map.put(:sender_id, sender_id)
+        |> MessageHandler.handle_classified_message(user)
     end
   end
 end

@@ -42,7 +42,7 @@ defmodule FinBotElixir.Processor do
     Main entry point for processing incoming messages from the WhatsApp webhook.
     Enqueues an Oban job to handle the message asynchronously with retry.
   """
-  def handle_webhook_message(%{from: sender_id, text: text}) do
+  def handle_webhook_message(%{from: sender_id, text: text} = params) do
     Logger.info("Iniciando processador para msg do webhook: #{inspect(params)}")
     Logger.info("Enfileirando mensagem de texto do webhook para sender #{sender_id}")
 

@@ -1,5 +1,6 @@
 defmodule FinBotElixir.Gemini.Interactions do
   alias FinBotElixir.WhatsApp.Client
+  alias FinBotElixir.Financial
 
   @data_query_response_msgid "This capability is under construction. Hold fast! 🔧"
   @unrelated_response_msgid "This topic is unrelated. Please talk only about finances. 💰"

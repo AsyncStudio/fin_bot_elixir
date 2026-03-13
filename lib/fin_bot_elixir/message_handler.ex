@@ -1,12 +1,4 @@
 defmodule FinBotElixir.MessageHandler do
-  @moduledoc """
-  Core message-handling logic shared by all message workers.
-
-  This module is responsible for dispatching the classified message context to
-  the appropriate handler (create transaction, generate finance tip, etc.) and
-  sending the WhatsApp reply back to the user.  It intentionally contains no
-  async or retry concerns — those are owned by the Oban workers.
-  """
 
   require Logger
 

@@ -114,9 +114,14 @@ defmodule FinBotElixir.Gemini.Client do
   """
   def process_financial_tip_request(context) do
     prompt = build_financial_tip_prompt(context.original_text)
-    {:ok, response} = Gemini.generate(prompt)
-
-    context |> Map.put(:ai_response, parse_text_response(response))
+    with {:ok, response} <- Gemini.generate(prompt) do
+      context
+        |> Map.put(:ai_response, parse_text_response(response))
+    else
+      {:error, reason} ->
+        Logger.error("Erro ao gerar dica financeira: #{inspect(reason)}")
+        context
+    end
   end
 
   # region Internal

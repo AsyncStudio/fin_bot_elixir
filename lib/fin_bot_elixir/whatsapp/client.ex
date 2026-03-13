@@ -11,7 +11,7 @@ defmodule FinBotElixir.WhatsApp.Client do
     Logger.info("Enviando mensagem para #{whatsapp_number}: #{text}")
 
     Logger.debug(
-      "Detalhes do envio #{inspect(%{url: url, token: token, whatsapp_number: whatsapp_number, text: text})}"
+      "Detalhes do envio #{inspect(%{url: url, whatsapp_number: whatsapp_number, text: text})}"
     )
 
     body = %{

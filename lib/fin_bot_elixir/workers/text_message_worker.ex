@@ -29,9 +29,9 @@ defmodule FinBotElixir.Workers.TextMessageWorker do
          existing_tags = Financial.list_all_tag_names_for_user(user.id),
          {:ok, context} <- Client.classify_message(text, existing_tags) do
       context
-      |> Map.put(:sender_id, sender_id)
-      |> Map.put(:existing_tags, existing_tags)
-      |> MessageHandler.handle_classified_message(user)
+        |> Map.put(:sender_id, sender_id)
+        |> Map.put(:existing_tags, existing_tags)
+        |> MessageHandler.handle_classified_message(user)
     end
   end
 end
