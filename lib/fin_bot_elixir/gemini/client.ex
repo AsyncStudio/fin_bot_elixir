@@ -1,4 +1,8 @@
 defmodule FinBotElixir.Gemini.Client do
+  require Logger
+
+  alias FinBotElixir.Financial.Transaction
+
   # @model "gemini-1.5-flash"
 
   @response_schema %{
@@ -25,19 +29,15 @@ defmodule FinBotElixir.Gemini.Client do
 
   @response_mime_type "application/json"
 
-  require Logger
-
-  alias FinBotElixir.Financial.Transaction
-
   @doc """
-  Classifies the user message and, in a single AI call, extracts all data needed
-  to handle the response. Returns `{:ok, context}` where context is a map with:
-    - `:message_type` — one of `:transaction`, `:data_query`, `:finance_tip`, `:unrelated`
-    - `:transaction_data` — map with transaction fields (including `tags`), or `nil`
-    - `:ai_response` — AI-generated reply text (for transactions and finance tips), or `nil`
-    - `:original_text` — the raw user input
+    Classifies the user message and, in a single AI call, extracts all data needed
+    to handle the response. Returns `{:ok, context}` where context is a map with:
+      - `:message_type` — one of `:transaction`, `:data_query`, `:finance_tip`, `:unrelated`
+      - `:transaction_data` — map with transaction fields (including `tags`), or `nil`
+      - `:ai_response` — AI-generated reply text (for transactions and finance tips), or `nil`
+      - `:original_text` — the raw user input
 
-  Optionally accepts a list of existing tag names to guide the AI in reusing tags.
+    Optionally accepts a list of existing tag names to guide the AI in reusing tags.
   """
   def classify_message(user_text, existing_tags \\ []) do
     prompt = build_classification_prompt(user_text, existing_tags)
@@ -48,7 +48,7 @@ defmodule FinBotElixir.Gemini.Client do
              response_mime_type: @response_mime_type,
              temperature: 0.3
            ) do
-      generate_output(response, user_text)
+      build_context(response, user_text)
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem: #{inspect(reason)}")
@@ -58,7 +58,8 @@ defmodule FinBotElixir.Gemini.Client do
 
 
   @doc """
-  Classifies a multimodal message containing both text and an attached media file (e.g. image of a receipt).
+    Classifies a multimodal message containing both text and
+    an attached media file (e.g. image of a receipt).
   """
   def classify_multimodal(binary, _mime_type, user_text) do
     prompt_text =
@@ -86,7 +87,7 @@ defmodule FinBotElixir.Gemini.Client do
              response_mime_type: @response_mime_type,
              temperature: 0.3
            ) do
-      generate_output(response, user_text)
+      build_context(response, user_text)
     else
       {:error, reason} ->
         Logger.error("Erro ao classificar mensagem: #{inspect(reason)}")
@@ -95,7 +96,7 @@ defmodule FinBotElixir.Gemini.Client do
   end
 
   @doc """
-  Parses a raw AI classification data map into the message context.
+    Parses a raw AI classification data map into the message context.
   """
   def parse_classification_data(data, text) do
     message_type = parse_message_type(data["message_type"])
@@ -108,6 +109,9 @@ defmodule FinBotElixir.Gemini.Client do
     }
   end
 
+  @doc """
+    Transforms context to include only the financial tip response based on the user's query.
+  """
   def process_financial_tip_request(context) do
     prompt = build_financial_tip_prompt(context.original_text)
     {:ok, response} = Gemini.generate(prompt)
@@ -125,8 +129,61 @@ defmodule FinBotElixir.Gemini.Client do
   defp parse_message_type(_), do: :unrelated
 
   @doc """
-  Builds the AI classification prompt for the given user message and optional existing tags.
-  Made public for testability.
+    Parses a raw AI classification data map into the message context.
+  """
+  defp build_context(response, original_text) do
+    with {:ok, data} <- parse_json_response(response) do
+      message_type = parse_message_type(data["message_type"])
+
+      context = %{
+        message_type: message_type,
+        transaction_data: data["transaction_data"],
+        ai_response: data["ai_response"],
+        original_text: original_text
+      }
+
+      Logger.info(
+        "Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}"
+      )
+
+      {:ok, context}
+    end
+  end
+
+  @doc """
+    Parse response from Gemini LLM and extract the text content.
+  """
+  defp parse_text_response(body) do
+    text_response =
+      body.candidates
+      |> List.first()
+      |> get_in([Access.key!(:content), Access.key!(:parts)])
+      |> List.first()
+
+    text_response.text
+  end
+
+  @doc """
+    Parse response from Gemini LLM and extract JSON content.
+  """
+  defp parse_json_response(body) do
+    text_response =
+      body.candidates
+      |> List.first()
+      |> get_in([Access.key!(:content), Access.key!(:parts)])
+      |> List.first()
+
+    case Jason.decode(text_response.text) do
+      {:ok, data} -> {:ok, data}
+      _ -> {:error, "Falha no parse do JSON da IA"}
+    end
+  end
+
+  # endregion
+  # region: Prompts
+
+  @doc """
+    Builds the AI classification prompt for the given user message and optional existing tags.
   """
   def build_classification_prompt(text, existing_tags \\ []) do
     categories = Transaction.category_values() |> Enum.join("|")
@@ -216,6 +273,9 @@ defmodule FinBotElixir.Gemini.Client do
     """
   end
 
+  @doc """
+    Builds the AI prompt for finance tips based on the user's query.
+  """
   defp build_financial_tip_prompt(query) do
     """
     Provide a helpful, practical personal finance tip or answer to the following question/request:
@@ -223,48 +283,6 @@ defmodule FinBotElixir.Gemini.Client do
 
     Return the response as plain text in the same language as the query.
     """
-  end
-
-  defp generate_output(response, original_text) do
-    with {:ok, data} <- parse_response(response) do
-      message_type = parse_message_type(data["message_type"])
-
-      context = %{
-        message_type: message_type,
-        transaction_data: data["transaction_data"],
-        ai_response: data["ai_response"],
-        original_text: original_text
-      }
-
-      Logger.info(
-        "Mensagem classificada como '#{message_type}': #{original_text}\n#{inspect(context)}"
-      )
-
-      {:ok, context}
-    end
-  end
-
-  def parse_text_response(body) do
-    text_response =
-      body.candidates
-      |> List.first()
-      |> get_in([Access.key!(:content), Access.key!(:parts)])
-      |> List.first()
-
-    text_response.text
-  end
-
-  defp parse_response(body) do
-    text_response =
-      body.candidates
-      |> List.first()
-      |> get_in([Access.key!(:content), Access.key!(:parts)])
-      |> List.first()
-
-    case Jason.decode(text_response.text) do
-      {:ok, data} -> {:ok, data}
-      _ -> {:error, "Falha no parse do JSON da IA"}
-    end
   end
 
   # endregion

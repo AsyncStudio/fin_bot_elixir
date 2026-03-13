@@ -60,12 +60,13 @@ defmodule FinBotElixir.Gemini.Interactions do
     send_message(user, response)
   end
 
+  # Default handler
   def handle_message_context(context, user, _transaction)
       when is_binary(context.ai_response) and context.ai_response != "" do
     send_message(user, context.ai_response)
   end
 
-  # Default handler
+  # Error handler
   def handle_message_context(_context, user, _transaction) do
     response = Enum.random(@error_responses)
     send_message(user, response)

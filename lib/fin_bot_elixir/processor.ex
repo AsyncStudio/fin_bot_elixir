@@ -35,6 +35,17 @@ defmodule FinBotElixir.Processor do
     |> MediaMessageWorker.new()
     |> Oban.insert()
 
+  @doc """
+    Main entry point for processing incoming messages from the WhatsApp webhook.
+    Spawns a supervised task to handle the message asynchronously, with retry logic.
+  """
+  def handle_webhook_message(params) do
+    Logger.info("Iniciando processador para msg do webhook: #{inspect(params)}")
+
+    Task.Supervisor.start_child(FinBotElixir.TaskSupervisor, fn ->
+      retry(fn -> process_message(params) end, @max_retries)
+    end)
+
     :ok
   end
 
