@@ -1,5 +1,5 @@
 defmodule FinBotElixir.Gemini.Client do
-  @model "gemini-1.5-flash"
+  # @model "gemini-1.5-flash"
 
   @response_schema %{
     "type" => "object",
@@ -56,7 +56,11 @@ defmodule FinBotElixir.Gemini.Client do
     end
   end
 
-  def classify_multimodal(binary, mime_type, user_text) do
+
+  @doc """
+  Classifies a multimodal message containing both text and an attached media file (e.g. image of a receipt).
+  """
+  def classify_multimodal(binary, _mime_type, user_text) do
     prompt_text =
       build_classification_prompt(user_text <> " (Analyze the attached media if provided)")
 
@@ -70,7 +74,7 @@ defmodule FinBotElixir.Gemini.Client do
     # Wait for processing (videos/large files)
     {:ok, ready} = Gemini.APIs.Files.wait_for_processing(file.name)
 
-    # Estrutura para o Gemini receber o binário + texto
+    # Structure for Gemini to receive binary + text
     content_parts = [
       %{text: prompt_text},
       %{file_uri: ready.uri, mime_type: ready.mime_type}
@@ -92,7 +96,6 @@ defmodule FinBotElixir.Gemini.Client do
 
   @doc """
   Parses a raw AI classification data map into the message context.
-  This is a pure function that can be used directly in tests.
   """
   def parse_classification_data(data, text) do
     message_type = parse_message_type(data["message_type"])

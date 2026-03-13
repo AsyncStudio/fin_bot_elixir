@@ -7,7 +7,7 @@ defmodule FinBotElixir.Gemini.ClientTest do
   # parse_classification_data/2
   # ---------------------------------------------------------------------------
 
-  describe "parse_classification_data/2 – message type detection" do
+  describe "parse_classification_data/2 - message type detection" do
     test "recognises a transaction message" do
       data = %{"message_type" => "transaction", "transaction_data" => nil, "ai_response" => nil}
       context = Client.parse_classification_data(data, "spent $10")
@@ -51,7 +51,7 @@ defmodule FinBotElixir.Gemini.ClientTest do
     end
   end
 
-  describe "parse_classification_data/2 – category extraction" do
+  describe "parse_classification_data/2 - category extraction" do
     test "passes through the AI-resolved category label directly" do
       data = %{
         "message_type" => "transaction",
@@ -139,7 +139,7 @@ defmodule FinBotElixir.Gemini.ClientTest do
     end
   end
 
-  describe "parse_classification_data/2 – tag extraction" do
+  describe "parse_classification_data/2 - tag extraction" do
     test "includes tags that the user explicitly mentioned" do
       data = %{
         "message_type" => "transaction",

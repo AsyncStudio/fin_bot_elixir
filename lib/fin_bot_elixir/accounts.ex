@@ -8,7 +8,7 @@ defmodule FinBotElixir.Accounts do
         {:ok, user}
 
       nil ->
-        # Se não existe, criamos um usuário "Sombra"
+        # If it doesn't exist, we create a "Shadow" user
         create_user(%{
           whatsapp_number: whatsapp_number,
           full_name: "Usuário #{whatsapp_number}",
@@ -27,11 +27,10 @@ defmodule FinBotElixir.Accounts do
 
   def register_or_link_google_user(google_user_data, linking_token \\ nil) do
     email = google_user_data["email"]
-    google_id = google_user_data["sub"]
 
-    # 1. Tenta achar por e-mail (caso já tenha logado antes)
-    # 2. Se tiver token, tenta achar o Shadow User e atualizar
-    # 3. Se não, cria um novo usuário do zero
+    # 1. Try to find by email (in case already logged in before)
+    # 2. If there is a token, try to find the Shadow User and update
+    # 3. If not, create a new user from scratch
     case Repo.get_by(User, email: email) do
       %User{} = user ->
         {:ok, user}
@@ -64,13 +63,13 @@ defmodule FinBotElixir.Accounts do
       email: data["email"],
       google_id: data["sub"],
       full_name: data["name"],
-      # Usuário que começou pelo Dash, não pelo Zap
+      # User who started from the Dashboard, not from WhatsApp
       whatsapp_number: nil
     })
   end
 
   defp generate_unique_token do
-    # Gera um token curto e fácil de digitar, tipo "FIN-A123"
+    # Generates a short and easy-to-type token, like "FIN-A123"
     "FIN-" <>
       (8 |> :crypto.strong_rand_bytes() |> Base.encode32(padding: false) |> binary_part(0, 4))
   end

@@ -12,17 +12,6 @@ defmodule FinBotElixirWeb.TagController do
   def index(conn, _params) do
     tags = Financial.list_tags_all()
     render(conn, :index, tags: tags)
-    # user_id = conn.assigns[:current_scope][:id]
-
-    # if user_id do
-    #   tags = Financial.list_tags(user_id)
-    #   render(conn, :index, tags: tags)
-    # else
-    #   conn
-    #   |> put_status(:unauthorized)
-    #   |> put_view(FinBotElixirWeb.ErrorJSON)
-    #   |> render(:error, %{reason: "Unauthorized"})
-    # end
   end
 
   @doc """

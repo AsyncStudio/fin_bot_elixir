@@ -1,6 +1,5 @@
 defmodule FinBotElixirWeb.WhatsappController do
   require Logger
-  import Dotenvy
 
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Processor
@@ -22,7 +21,7 @@ defmodule FinBotElixirWeb.WhatsappController do
 
     case extract_message(params) do
       nil ->
-        Logger.warn("Webhook recebido com formato inesperado: #{inspect(params)}")
+        Logger.warning("Webhook recebido com formato inesperado: #{inspect(params)}")
         send_resp(conn, 200, "")
 
       extracted_params ->

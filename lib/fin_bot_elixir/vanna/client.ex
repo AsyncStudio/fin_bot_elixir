@@ -15,7 +15,7 @@ defmodule FinBotElixir.Vanna.Client do
         :ok
 
       {:error, reason} ->
-        Logger.warn("Erro ao tentar comunicar com o serviço vanna: #{inspect(reason)}")
+        Logger.warning("Erro ao tentar comunicar com o serviço vanna: #{inspect(reason)}")
 
         :error
     end

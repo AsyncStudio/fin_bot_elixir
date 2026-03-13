@@ -27,7 +27,7 @@ defmodule FinBotElixir.WhatsApp.Client do
         :ok
 
       {:error, reason} ->
-        Logger.warn(
+        Logger.warning(
           "Erro ao enviar mensagem WhatsApp para #{whatsapp_number}: #{inspect(reason)}"
         )
 
