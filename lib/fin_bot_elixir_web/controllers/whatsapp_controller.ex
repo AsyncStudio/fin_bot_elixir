@@ -9,7 +9,7 @@ defmodule FinBotElixirWeb.WhatsappController do
         "hub.challenge" => challenge,
         "hub.verify_token" => token
       }) do
-    if token == "fin_BOT-verify-token%$" do
+    if token == verify_token() do
       send_resp(conn, 200, challenge)
     else
       send_resp(conn, 403, "Forbidden")
@@ -53,4 +53,7 @@ defmodule FinBotElixirWeb.WhatsappController do
   end
 
   defp extract_message(_), do: nil
+
+  defp verify_token, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:verify_token]
+
 end
