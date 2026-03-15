@@ -121,6 +121,19 @@ defmodule FinBotElixir.Financial do
     |> Repo.all()
   end
 
+  def list_user_transactions_paginated(user_id, page, page_size)
+      when is_integer(page) and page >= 1 and is_integer(page_size) and page_size >= 1 do
+    offset = (page - 1) * page_size
+
+    Transaction
+    |> where([t], t.user_id == ^user_id)
+    |> order_by([t], desc: t.inserted_at)
+    |> preload(:tags)
+    |> limit(^page_size)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
   def count_user_transactions(user_id) do
     Transaction
     |> where([t], t.user_id == ^user_id)
@@ -168,6 +181,20 @@ defmodule FinBotElixir.Financial do
 
   def get_transaction_for_user!(id, user_id) do
     Repo.get_by!(Transaction, id: id, user_id: user_id)
+  end
+
+  def get_transaction_for_user_with_tags!(id, user_id) do
+    Transaction
+    |> where([t], t.id == ^id and t.user_id == ^user_id)
+    |> preload(:tags)
+    |> Repo.one!()
+  end
+
+  def get_transaction_for_user_with_tags(id, user_id) do
+    Transaction
+    |> where([t], t.id == ^id and t.user_id == ^user_id)
+    |> preload(:tags)
+    |> Repo.one()
   end
 
   @doc """
@@ -419,6 +446,29 @@ defmodule FinBotElixir.Financial do
     |> Ecto.Changeset.change()
     |> Ecto.Changeset.put_assoc(:tags, new_tags)
     |> Repo.update()
+  end
+
+  @doc """
+  Returns a spending summary grouped by tag for a given user.
+  Only expense transactions are counted.
+  Results are ordered by total amount descending.
+  """
+  def tags_summary_for_user(user_id) do
+    from(tag in Tag,
+      join: tt in "transaction_tags",
+      on: tt.tag_id == tag.id,
+      join: t in Transaction,
+      on: t.id == tt.transaction_id,
+      where: t.user_id == ^user_id and t.type == "expense",
+      group_by: tag.name,
+      select: %{
+        tag: tag.name,
+        total: sum(t.amount),
+        count: count(t.id)
+      },
+      order_by: [desc: sum(t.amount)]
+    )
+    |> Repo.all()
   end
 
   defp month_range(month, year) do

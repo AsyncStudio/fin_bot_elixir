@@ -70,7 +70,9 @@ defmodule FinBotElixir.MixProject do
       {:gemini_ex, "~> 0.9.1"},
       {:decimal, "~> 2.0"},
       {:assent, "~> 0.3.0"},
-      {:oban, "~> 2.18"}
+      {:oban, "~> 2.18"},
+      {:hammer, "~> 7.0"},
+      {:open_api_spex, "~> 3.18"}
     ]
   end
 

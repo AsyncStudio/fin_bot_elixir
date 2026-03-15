@@ -16,6 +16,18 @@ defmodule FinBotElixirWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_v1 do
+    plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: FinBotElixirWeb.ApiSpec
+    plug FinBotElixirWeb.Plugs.AuthenticateApiKey
+    plug FinBotElixirWeb.Plugs.RateLimiter
+  end
+
+  pipeline :api_docs do
+    plug :accepts, ["html", "json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: FinBotElixirWeb.ApiSpec
+  end
+
   pipeline :require_authenticated_user do
     plug FinBotElixirWeb.AuthPlug, :require_authenticated_user
   end
@@ -48,6 +60,23 @@ defmodule FinBotElixirWeb.Router do
 
     resources "/transactions", TransactionController, except: [:new, :edit]
     resources "/tags", TagController, except: [:new, :edit]
+  end
+
+  # Developer API v1 – authenticated & rate-limited
+  scope "/api/v1", FinBotElixirWeb.Api.V1 do
+    pipe_through :api_v1
+
+    get "/transactions", TransactionController, :index
+    get "/transactions/:id", TransactionController, :show
+    get "/tags/summary", TagController, :summary
+  end
+
+  # API documentation (public, no auth required)
+  scope "/api" do
+    pipe_through :api_docs
+
+    get "/docs", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi.json"
+    get "/openapi.json", OpenApiSpex.Plug.RenderSpec, []
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

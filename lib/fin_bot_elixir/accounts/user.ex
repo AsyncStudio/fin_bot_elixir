@@ -10,6 +10,7 @@ defmodule FinBotElixir.Accounts.User do
     field :firebase_uid, :string
     field :email, :string
     field :google_id, :string
+    field :api_key, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -25,9 +26,22 @@ defmodule FinBotElixir.Accounts.User do
       :email,
       :google_id
     ])
+    |> put_api_key_if_new()
     |> validate_required([:full_name])
     |> unique_constraint(:firebase_uid)
     |> unique_constraint(:linking_token)
     |> unique_constraint(:whatsapp_number)
+    |> unique_constraint(:api_key)
+  end
+
+  defp put_api_key_if_new(changeset) do
+    case get_field(changeset, :api_key) do
+      nil -> put_change(changeset, :api_key, generate_api_key())
+      _existing -> changeset
+    end
+  end
+
+  defp generate_api_key do
+    :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
   end
 end
