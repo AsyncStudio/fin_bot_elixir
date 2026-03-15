@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.AuthPlug do
+defmodule FinBotElixirWeb.Plugs.AuthPlug do
   import Plug.Conn
   import Phoenix.Controller
   alias FinBotElixir.Accounts

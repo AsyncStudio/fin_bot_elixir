@@ -9,15 +9,20 @@ defmodule FinBotElixirWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     # Sempre tenta carregar o usuário se ele existir na sessão
-    plug FinBotElixirWeb.AuthPlug, :fetch_current_user
+    plug FinBotElixirWeb.Plugs.AuthPlug, :fetch_current_user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_v1 do
+    plug :accepts, ["json"]
+    plug FinBotElixirWeb.Plugs.ApiAuthPlug
+  end
+
   pipeline :require_authenticated_user do
-    plug FinBotElixirWeb.AuthPlug, :require_authenticated_user
+    plug FinBotElixirWeb.Plugs.AuthPlug, :require_authenticated_user
   end
 
   scope "/", FinBotElixirWeb do
@@ -40,7 +45,7 @@ defmodule FinBotElixirWeb.Router do
   end
 
   scope "/api/v1", FinBotElixirWeb.Api.V1 do
-    pipe_through :api
+    pipe_through :api_v1
 
     resources "/transactions", TransactionController, except: [:new, :edit]
     resources "/tags", TagController, except: [:new, :edit]

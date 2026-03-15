@@ -7,15 +7,19 @@ defmodule FinBotElixirWeb.Api.V1.TransactionController do
   action_fallback FinBotElixirWeb.FallbackController
 
   def index(conn, _params) do
-    transactions = Financial.list_transactions()
+    current_user = conn.assigns.current_user
+    transactions = Financial.list_user_transactions(current_user.id)
     render(conn, :index, transactions: transactions)
   end
 
   def create(conn, %{"transaction" => transaction_params}) do
-    with {:ok, %Transaction{} = transaction} <- Financial.create_transaction(transaction_params) do
+    current_user = conn.assigns.current_user
+    with {:ok, %Transaction{} = transaction} <- Financial.create_transaction_for_user(
+      current_user.id, transaction_params
+    ) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/transactions/#{transaction}")
+      |> put_resp_header("location", ~p"/api/v1/transactions/#{transaction}")
       |> render(:show, transaction: transaction)
     end
   end

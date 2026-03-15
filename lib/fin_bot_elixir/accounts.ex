@@ -25,6 +25,8 @@ defmodule FinBotElixir.Accounts do
 
   def get_user(id), do: Repo.get(User, id)
 
+  def get_user_by_api_key(api_key), do: Repo.get_by(User, api_key: api_key)
+
   def register_or_link_google_user(google_user_data, linking_token \\ nil) do
     email = google_user_data["email"]
 
