@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.TransactionController do
+defmodule FinBotElixirWeb.Api.V1.TransactionController do
   use FinBotElixirWeb, :controller
 
   alias FinBotElixir.Financial

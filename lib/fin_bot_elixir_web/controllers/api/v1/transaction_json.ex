@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.TransactionJSON do
+defmodule FinBotElixirWeb.Api.V1.TransactionJSON do
   alias FinBotElixir.Financial.Transaction
 
   @doc """

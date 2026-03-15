@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.TagController do
+defmodule FinBotElixirWeb.Api.V1.TagController do
   use FinBotElixirWeb, :controller
 
   alias FinBotElixir.Financial

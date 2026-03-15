@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.TagJSON do
+defmodule FinBotElixirWeb.Api.V1.TagJSON do
   alias FinBotElixir.Financial.Tag
 
   @doc """

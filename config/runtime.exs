@@ -49,7 +49,7 @@ config :fin_bot_elixir, :google_auth,
 config :fin_bot_elixir, :whatsapp,
   base_url: env!("FACEBOOK_API_URL", :string),
   token: env!("WHATSAPP_ACCESS_TOKEN", :string),
-  phone_id: env!("WHATSAPP_PHONE_NUMBER_ID", :string)
+  phone_id: env!("WHATSAPP_PHONE_NUMBER_ID", :string),
   verify_token: env!("WHATSAPP_VERIFY_TOKEN", :string)
 
 config :fin_bot_elixir, :vanna, base_url: env!("VANNA_SERVICE_HOST", :string)

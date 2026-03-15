@@ -1,4 +1,4 @@
-defmodule FinBotElixirWeb.WhatsappController do
+defmodule FinBotElixirWeb.Webhooks.WhatsappController do
   require Logger
 
   use FinBotElixirWeb, :controller

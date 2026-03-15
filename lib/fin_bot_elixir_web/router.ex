@@ -29,7 +29,6 @@ defmodule FinBotElixirWeb.Router do
     get "/logout", AuthController, :logout
   end
 
-  # Rotas Protegidas (Dashboard do FinBot)
   scope "/dashboard", FinBotElixirWeb do
     pipe_through [:browser, :require_authenticated_user]
 
@@ -40,14 +39,18 @@ defmodule FinBotElixirWeb.Router do
     end
   end
 
-  scope "/api", FinBotElixirWeb do
+  scope "/api/v1", FinBotElixirWeb.Api.V1 do
     pipe_through :api
-
-    get "/webhook/whatsapp", WhatsappController, :verify
-    post "/webhook/whatsapp", WhatsappController, :receive
 
     resources "/transactions", TransactionController, except: [:new, :edit]
     resources "/tags", TagController, except: [:new, :edit]
+  end
+
+  scope "/webhook", FinBotElixirWeb.Webhooks do
+    pipe_through :api
+
+    get "/whatsapp", WhatsappController, :verify
+    post "/whatsapp", WhatsappController, :receive
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
