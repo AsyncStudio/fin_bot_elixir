@@ -22,7 +22,7 @@ defmodule FinBotElixirWeb.Api.V1.TransactionControllerTest do
         |> put_req_header("x-api-key", user1.api_key)
         |> get(Routes.transaction_path(conn, :index))
 
-      assert Enum.count(json_response(conn, 200)["data"]) == 2
+      assert Enum.count(json_response(conn, 200)["data"]) == Enum.count(transactions)
     end
 
     test "lists only user transactions", %{conn: conn} do
@@ -35,7 +35,7 @@ defmodule FinBotElixirWeb.Api.V1.TransactionControllerTest do
         |> put_req_header("x-api-key", user1.api_key)
         |> get(Routes.transaction_path(conn, :index))
 
-      assert Enum.count(json_response(conn, 200)["data"]) == 2
+      assert Enum.count(json_response(conn, 200)["data"]) == Enum.count(transactions)
     end
   end
 end

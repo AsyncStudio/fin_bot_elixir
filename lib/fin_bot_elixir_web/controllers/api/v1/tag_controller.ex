@@ -10,7 +10,8 @@ defmodule FinBotElixirWeb.Api.V1.TagController do
   List all tags for the authenticated user.
   """
   def index(conn, _params) do
-    tags = Financial.list_tags_all()
+    current_user = conn.assigns.current_user
+    tags = Financial.list_tags(current_user.id)
     render(conn, :index, tags: tags)
   end
 
@@ -18,7 +19,7 @@ defmodule FinBotElixirWeb.Api.V1.TagController do
   Create a new tag for the authenticated user.
   """
   def create(conn, %{"tag" => tag_params}) do
-    user_id = conn.assigns[:current_scope][:id]
+    user_id = conn.assigns.current_user.id
 
     if user_id do
       with {:ok, %Tag{} = tag} <- Financial.create_tag(user_id, tag_params) do
@@ -39,7 +40,7 @@ defmodule FinBotElixirWeb.Api.V1.TagController do
   Get a specific tag by ID for the authenticated user.
   """
   def show(conn, %{"id" => id}) do
-    user_id = conn.assigns[:current_scope][:id]
+    user_id = conn.assigns.current_user.id
 
     if user_id do
       case Financial.get_tag(id, user_id) do
@@ -64,7 +65,7 @@ defmodule FinBotElixirWeb.Api.V1.TagController do
   Update a tag for the authenticated user.
   """
   def update(conn, %{"id" => id, "tag" => tag_params}) do
-    user_id = conn.assigns[:current_scope][:id]
+    user_id = conn.assigns.current_user.id
 
     if user_id do
       case Financial.get_tag(id, user_id) do
@@ -91,7 +92,7 @@ defmodule FinBotElixirWeb.Api.V1.TagController do
   Delete a tag for the authenticated user.
   """
   def delete(conn, %{"id" => id}) do
-    user_id = conn.assigns[:current_scope][:id]
+    user_id = conn.assigns.current_user.id
 
     if user_id do
       case Financial.get_tag(id, user_id) do
