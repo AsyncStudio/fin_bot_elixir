@@ -10,6 +10,7 @@ defmodule FinBotElixir.Accounts.User do
     field :firebase_uid, :string
     field :email, :string
     field :google_id, :string
+    field :api_key, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -17,17 +18,27 @@ defmodule FinBotElixir.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [
-      :full_name,
-      :whatsapp_number,
-      :linking_token,
-      :firebase_uid,
-      :email,
-      :google_id
-    ])
-    |> validate_required([:full_name])
-    |> unique_constraint(:firebase_uid)
-    |> unique_constraint(:linking_token)
-    |> unique_constraint(:whatsapp_number)
+      |> cast(attrs, [
+        :full_name,
+        :whatsapp_number,
+        :linking_token,
+        :firebase_uid,
+        :email,
+        :google_id,
+        :api_key
+      ])
+      |> put_api_key()
+      |> validate_required([:full_name])
+      |> unique_constraint(:firebase_uid)
+      |> unique_constraint(:linking_token)
+      |> unique_constraint(:whatsapp_number)
+      |> unique_constraint(:api_key)
+  end
+
+  defp put_api_key(changeset) do
+    case get_field(changeset, :api_key) do
+      nil -> put_change(changeset, :api_key, Ecto.UUID.generate() |> String.replace("-", ""))
+      _ -> changeset
+    end
   end
 end

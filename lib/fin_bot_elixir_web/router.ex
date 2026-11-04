@@ -9,15 +9,20 @@ defmodule FinBotElixirWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     # Sempre tenta carregar o usuário se ele existir na sessão
-    plug FinBotElixirWeb.AuthPlug, :fetch_current_user
+    plug FinBotElixirWeb.Plugs.AuthPlug, :fetch_current_user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_v1 do
+    plug :accepts, ["json"]
+    plug FinBotElixirWeb.Plugs.ApiAuthPlug
+  end
+
   pipeline :require_authenticated_user do
-    plug FinBotElixirWeb.AuthPlug, :require_authenticated_user
+    plug FinBotElixirWeb.Plugs.AuthPlug, :require_authenticated_user
   end
 
   scope "/", FinBotElixirWeb do
@@ -29,7 +34,6 @@ defmodule FinBotElixirWeb.Router do
     get "/logout", AuthController, :logout
   end
 
-  # Rotas Protegidas (Dashboard do FinBot)
   scope "/dashboard", FinBotElixirWeb do
     pipe_through [:browser, :require_authenticated_user]
 
@@ -40,14 +44,18 @@ defmodule FinBotElixirWeb.Router do
     end
   end
 
-  scope "/api", FinBotElixirWeb do
-    pipe_through :api
-
-    get "/webhook/whatsapp", WhatsappController, :verify
-    post "/webhook/whatsapp", WhatsappController, :receive
+  scope "/api/v1", FinBotElixirWeb.Api.V1 do
+    pipe_through :api_v1
 
     resources "/transactions", TransactionController, except: [:new, :edit]
     resources "/tags", TagController, except: [:new, :edit]
+  end
+
+  scope "/webhook", FinBotElixirWeb.Webhooks do
+    pipe_through :api
+
+    get "/whatsapp", WhatsappController, :verify
+    post "/whatsapp", WhatsappController, :receive
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

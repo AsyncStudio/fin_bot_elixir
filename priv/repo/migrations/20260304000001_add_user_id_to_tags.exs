@@ -3,8 +3,8 @@ defmodule FinBotElixir.Repo.Migrations.AddUserIdToTags do
 
   def change do
     # Delete all existing tags before adding user_id column
-    do
-      execute "DELETE FROM tags"
+    try do
+      execute("DELETE FROM tags")
     rescue
       _ -> :ok
     end

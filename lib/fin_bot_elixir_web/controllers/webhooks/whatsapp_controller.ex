@@ -1,6 +1,5 @@
-defmodule FinBotElixirWeb.WhatsappController do
+defmodule FinBotElixirWeb.Webhooks.WhatsappController do
   require Logger
-  import Dotenvy
 
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Processor
@@ -10,7 +9,7 @@ defmodule FinBotElixirWeb.WhatsappController do
         "hub.challenge" => challenge,
         "hub.verify_token" => token
       }) do
-    if token == "fin_BOT-verify-token%$" do
+    if token == verify_token() do
       send_resp(conn, 200, challenge)
     else
       send_resp(conn, 403, "Forbidden")
@@ -22,7 +21,7 @@ defmodule FinBotElixirWeb.WhatsappController do
 
     case extract_message(params) do
       nil ->
-        Logger.warn("Webhook recebido com formato inesperado: #{inspect(params)}")
+        Logger.warning("Webhook recebido com formato inesperado: #{inspect(params)}")
         send_resp(conn, 200, "")
 
       extracted_params ->
@@ -54,4 +53,7 @@ defmodule FinBotElixirWeb.WhatsappController do
   end
 
   defp extract_message(_), do: nil
+
+  defp verify_token, do: Application.fetch_env!(:fin_bot_elixir, :whatsapp)[:verify_token]
+
 end

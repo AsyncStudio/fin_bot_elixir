@@ -28,6 +28,10 @@ defmodule FinBotElixirWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import FinBotElixirWeb.ConnCase
+
+      alias FinBotElixirWeb.Router.Helpers, as: Routes
+
+      @endpoint FinBotElixirWeb.Endpoint
     end
   end
 

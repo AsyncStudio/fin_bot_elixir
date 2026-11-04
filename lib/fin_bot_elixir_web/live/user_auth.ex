@@ -2,7 +2,6 @@ defmodule FinBotElixirWeb.Live.UserAuth do
   @moduledoc """
   LiveView on_mount hook that loads the current user from the session.
   """
-  import Phoenix.LiveView
   import Phoenix.Component
 
   alias FinBotElixir.Accounts

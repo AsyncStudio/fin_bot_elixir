@@ -3,7 +3,12 @@ defmodule FinBotElixirWeb.AuthController do
   use FinBotElixirWeb, :controller
   alias FinBotElixir.Accounts
 
-  # Sem parâmetros → exibe a tela de login com o botão "Sign-In with Google"
+  @doc """
+    Entry route for authentication.
+    > Redirects to dashboard if already logged in.
+    > Starts OAuth flow for login or linking if parameters indicate.
+    > Shows default login screen if no specific parameter is provided.
+  """
   def request(conn, %{"provider" => "google"} = params) do
     current_user = conn.assigns[:current_user]
 
@@ -11,25 +16,27 @@ defmodule FinBotElixirWeb.AuthController do
       redirect(conn, to: ~p"/dashboard")
     else
       cond do
+
         params["token"] ->
-          # Tem token de vinculação → inicia OAuth para linkar conta (ex: /auth/google?token=FIN-A123)
+          # Has linking token > starts OAuth to link account (e.g.: /auth/google?token=FIN-A123)
           conn
           |> put_session(:linking_token, params["token"])
           |> start_google_oauth()
 
+
         params["login"] == "true" ->
-          # Botão "Sign-In with Google" foi clicado → inicia OAuth para login
+          # "Sign-In with Google" button was clicked > starts OAuth for login
           start_google_oauth(conn)
 
+
         true ->
-          # Sem token e sem indicador de login → exibe tela de login
+          # No token and no login indicator > shows login screen
           current_scope = %{user: current_user}
           render(conn, :login, current_scope: current_scope)
       end
     end
   end
 
-  # O Google volta para cá
   def callback(conn, %{"provider" => "google"} = params) do
     linking_token = get_session(conn, :linking_token)
     session_params = get_session(conn, :google_session_params)
@@ -43,7 +50,7 @@ defmodule FinBotElixirWeb.AuthController do
         case Accounts.register_or_link_google_user(user_data, linking_token) do
           {:ok, user} ->
             conn
-            # Loga o usuário
+            # Logs in the user
             |> configure_session(renew: true)
             |> put_session(:user_id, user.id)
             |> delete_session(:linking_token)
@@ -54,7 +61,7 @@ defmodule FinBotElixirWeb.AuthController do
             conn
             |> delete_session(:linking_token)
             |> delete_session(:google_session_params)
-            |> put_flash(:error, "Erro ao logar.")
+            |> put_flash(:error, "Error logging in.")
             |> redirect(to: ~p"/")
         end
 
@@ -64,7 +71,7 @@ defmodule FinBotElixirWeb.AuthController do
         conn
         |> delete_session(:linking_token)
         |> delete_session(:google_session_params)
-        |> put_flash(:error, "Erro ao autenticar com Google.")
+        |> put_flash(:error, "Error authenticating with Google.")
         |> redirect(to: ~p"/")
     end
   end
@@ -86,7 +93,7 @@ defmodule FinBotElixirWeb.AuthController do
 
       {:error, _reason} ->
         conn
-        |> put_flash(:error, "Erro ao iniciar o login com Google.")
+        |> put_flash(:error, "Error starting login with Google.")
         |> redirect(to: ~p"/")
     end
   end
